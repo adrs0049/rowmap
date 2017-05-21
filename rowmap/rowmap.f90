@@ -22,7 +22,12 @@
 ! method is preserved with small Krylov dimensions.  Step size control is
 ! done by embedding with a method of order 3.
 
-! Version of January 10, 1997.
+! Version of May 20, 2017.
+
+!
+!   Modified: Ported to F90 by Andreas Buttenschoen
+!             and allow wrapping using f2py
+!
 
 !   Authors:
 !       H. Podhaisky, R. Weiner,

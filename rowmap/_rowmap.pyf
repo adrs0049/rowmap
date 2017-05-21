@@ -1,0 +1,99 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+python module rowmap__user__routines
+    interface rowmap_user_interface
+        subroutine f(n,t,u,udot,rpar,ipar)
+            integer dimension(*), intent(hide) :: n
+            double precision dimension(n[0]) :: u
+            double precision :: t
+            double precision dimension(*), intent(out) :: udot
+            integer, optional, intent(in) :: ipar(*)
+            double precision, optional, intent(in) :: rpar(*)
+        end subroutine f
+        subroutine jacv(n,t,u,v,z,rpar,ipar)
+            integer dimension(*), intent(hide) :: n
+            double precision dimension(n[0]) :: u
+            double precision dimension(n[0]) :: v
+            double precision dimension(n[0]) :: z
+            double precision :: t
+            integer, optional, intent(in) :: ipar(*)
+            double precision, optional, intent(in) :: rpar(*)
+        end subroutine jacv
+        subroutine fdt(n,t,u,ft,rpar,ipar)
+            integer dimension(*), intent(hide) :: n
+            double precision(n[0]) :: u
+            double precision(n[0]) :: ft
+            double precision :: t
+            integer, optional, intent(in) :: ipar(*)
+            double precision, optional, intent(in) :: rpar(*)
+        end subroutine fdt
+        subroutine solout(n,told,tnew,uold,unew,fold,fnew,ucon,intr,rpar,ipar)
+            integer dimension(*), intent(hide) :: n
+            double precision dimension(n[0]) :: uold
+            double precision dimension(n[0]) :: unew
+            double precision dimension(n[0]) :: fold
+            double precision dimension(n[0]) :: fnew
+            double precision dimension(n[0]) :: ucon
+            double precision :: told
+            double precision :: tnew
+            integer, intent(optional) :: intr
+            integer, optional, intent(in) :: ipar(*)
+            double precision, optional, intent(in) :: rpar(*)
+        end subroutine solout
+    end interface rowmap_user_interface
+end python module rowmap__user__routines
+
+python module _rowmap ! in 
+    interface  ! in :_rowmap
+        subroutine rowmap(n,f,ifcn,t,u,tend,hs,rtol,atol,itol,ijacv,ifdt,iout,work,lwork,iwork,liwork,rpar,ipar,idid) ! in :_rowmap:rowmap.f90
+            use rowmap__user__routines
+            integer, optional,intent(in),check(len(u)>=n),depend(u) :: n=len(u)
+            external f
+            integer optional, intent(in) :: ifcn=0
+            double precision intent(in,out) :: t
+            double precision dimension(n),intent(in,out) :: u
+            double precision intent(in) :: tend
+            double precision intent(in,out) :: hs
+            double precision dimension(*),intent(in) :: rtol
+            double precision dimension(*),intent(in) :: atol
+            integer optional, intent(in) :: itol=0
+            integer optional, intent(in) :: ijacv=0
+            integer optional, intent(in) :: ifdt=0
+            integer optional, intent(in) :: iout=0
+            double precision dimension(lwork),intent(in) :: work
+            integer, optional,intent(in),check(len(work)>=lwork),depend(work) :: lwork=len(work)
+            integer dimension(liwork),intent(in,out) :: iwork
+            integer, optional,intent(in),depend(iwork),check(len(iwork)>=liwork) :: liwork=len(iwork)
+            double precision dimension(*),intent(in) :: rpar
+            integer dimension(*),intent(in) :: ipar
+            integer intent(out) :: idid
+            integer :: nfeval
+            integer :: nsteps
+            integer :: nstepsr
+            integer :: nfdt
+            integer :: njacv
+            integer dimension(4,3) :: nkrydim
+            real*8 :: uround
+            integer :: cifcn
+            integer :: citol
+            integer :: cijacv
+            integer :: cifdt
+            integer :: ciout
+            integer :: method
+            integer :: lun
+            real*8 :: fac1
+            real*8 :: fac2
+            real*8 :: fac3
+            integer :: nstpx
+            external, optional,intent(callback),check(iout==1),depend(iout) :: solout
+            external, optional,intent(callback),check(ijacv==1),depend(ijacv) :: jacv
+            external, optional,intent(callback),check(ifdt==1),check(ifcn==1),depend(ifdr) ::fdt
+            common /rowmap1/ nfeval,nsteps,nstepsr,nfdt,njacv,nkrydim
+            common /rowmap0/ uround,cifcn,citol,cijacv,cifdt,ciout,method,lun
+            common /rowmap2/ fac1,fac2,fac3,nstpx
+        end subroutine rowmap
+    end interface 
+end python module _rowmap
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/

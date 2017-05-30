@@ -113,8 +113,6 @@ class rowmap(IntegratorBase):
                           self.work, self.iwork,
                           self.rpar, self.ipar]
 
-        self.call_kwargs = {'n' : n }
-
         self.success = 1
         self.initialized = False
 
@@ -131,8 +129,7 @@ class rowmap(IntegratorBase):
             self.acquire_new_handle()
 
         args    = ((f, t0, y0, t1) + tuple(self.call_args))
-        kwargs  = self.call_kwargs
-        t, y1, hs, iwork, idid = self.runner(*args, **kwargs)
+        t, y1, hs, iwork, idid = self.runner(*args)
 
         if idid < 0:
             warnings.warn(self.__class__.__name__ + ': ' +

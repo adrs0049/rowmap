@@ -80,9 +80,7 @@ class MOL:
     """ Integrate using MOL """
     def run(self):
         while self.ode.successful() and self.ode.t < self.tf:
-            y = self.ode.integrate(self.ode.t + self.dt)
-            #print('y=',y)
-            #self.df[self.ode.t] = self.ode.integrate(self.ode.t + self.dt)
+            self.df[self.ode.t] = self.ode.integrate(self.ode.t + self.dt)
 
 
     """ Internals """
@@ -96,13 +94,12 @@ class MOL:
     def _setup(self):
         self._setup_integrator()
         # set ic in tdr
-        self.f.update(self.t0, self.y0)
+        #self.f.update(self.t0, self.y0)
 
 
     def _setup_integrator(self):
         self.ode = ode(self.f).set_integrator('rowmap', method='grk4t')
-        print(len(self.y0))
-        self.ode.set_initial_value(self.y0, self.t0)
+        self.ode.set_initial_value(self.y0.flatten(), self.t0)
 
 
 

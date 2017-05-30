@@ -97,6 +97,12 @@ class rowmap(IntegratorBase):
 
 
     def reset(self, n, has_jac):
+        """ Prepare integrator for call: allocate memory, set flags etc.
+        n - number of equations.
+        has_jac - user supplied jacobian
+        """
+
+        print('Calling reset n=%d' % n)
         # n - number of equations
         # has_jac - whether user has supplied its own Jacobian
         self.iwork = self._get_iwork()
@@ -122,11 +128,12 @@ class rowmap(IntegratorBase):
             self.acquire_new_handle()
 
         args = ((f, t0, y0, t1) + tuple(self.call_args))
-        t, y1, hs, iwork, istate = self.runner(*args)
+        print('args=',self.call_args)
+        t, y1, hs, iwork, idid = self.runner(*args)
 
-        if istate is not 1:
+        if idid < 0:
             warnings.warn(self.__class__.__name__ + ': ' +
-                          self.messages.get(istate, 'Unexpected istate=%s' % istate))
+                          self.messages.get(idid, 'Unexpected idid=%s' % idid))
             self.success = 0
 
         return y1, t

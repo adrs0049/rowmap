@@ -10,9 +10,9 @@
     ---------  = f(t, y(t))[i].
        d t
 
-	y(t=0)[i] = y0[i],
+    y(t=0)[i] = y0[i],
 
-	where::
+    where::
 
     i = 0, ..., len(y0) - 1
 
@@ -72,10 +72,17 @@ class MOL:
         self._setup()
 
 
+    """ print info """
+    def __str__(self):
+        return 'MOL(t0 = %.2g, t = %.2g, tf = %.2g).' % (self.t0, self.ode.t, self.tf)
+
+
     """ Integrate using MOL """
     def run(self):
         while self.ode.successful() and self.ode.t < self.tf:
-            self.df[self.ode.t] = self.ode.integrate(self.ode.t + self.dt)
+            y = self.ode.integrate(self.ode.t + self.dt)
+            #print('y=',y)
+            #self.df[self.ode.t] = self.ode.integrate(self.ode.t + self.dt)
 
 
     """ Internals """
@@ -94,6 +101,7 @@ class MOL:
 
     def _setup_integrator(self):
         self.ode = ode(self.f).set_integrator('rowmap', method='grk4t')
+        print(len(self.y0))
         self.ode.set_initial_value(self.y0, self.t0)
 
 

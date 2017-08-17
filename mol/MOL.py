@@ -53,7 +53,9 @@ class MOL:
         # integrator control
         self.t0     = kwargs.pop('t0', 0.)
         self.tf     = kwargs.pop('tf', 1.)
-        self.dt     = kwargs.pop('dt', 0.1)
+        self.dt     = kwargs.pop('dt', 1e-3)
+        self.hi     = kwargs.pop('hi', 1e-3)
+        self.vtol   = kwargs.pop('vtol', 1e-3)
         self.tout   = np.arange(self.t0, self.tf, self.dt)
 
         # lambdas to create initial condition
@@ -98,7 +100,9 @@ class MOL:
 
 
     def _setup_integrator(self):
-        self.ode = ode(self.f).set_integrator('rowmap', method='grk4t')
+        self.ode = ode(self.f).set_integrator('rowmap', method='grk4t',
+                                              dt=self.hi,
+                                              rtol=self.vtol, atol=self.vtol)
         self.ode.set_initial_value(self.y0.flatten(), self.t0)
 
 

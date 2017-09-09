@@ -47,7 +47,7 @@ python module _rowmap ! in
     interface  ! in :_rowmap
         subroutine rowmap(n,f,ifcn,t,u,tend,hs,rtol,atol,itol,ijacv,ifdt,iout,work,lwork,iwork,liwork,rpar,ipar,idid) ! in :_rowmap:rowmap.f90
             use rowmap__user__routines
-            integer, optional,intent(in),check(len(u)>=n),depend(u) :: n=len(u)
+            integer optional,intent(in),check(len(u)>=n),depend(u) :: n=len(u)
             external f
             integer optional, intent(in) :: ifcn=0
             double precision intent(in,out) :: t

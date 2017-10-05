@@ -26,7 +26,7 @@ class rowmap(IntegratorBase):
                  with_jacobian=False,
                  rtol=1e-6, atol=1e-12,
                  lbd=0.25, ubd=2., step_safety=0.8,
-                 ktol=1.e-1, max_iter=1000, mx=70,
+                 ktol=1.e-1, max_iter=10000, mx=70,
                  lun=6, dt=0.1,
                 ):
 

@@ -38,6 +38,7 @@
 
 """
 from __future__ import print_function, division
+from format_time import format_delta, now
 
 import numpy as np
 import pandas as pd
@@ -63,6 +64,8 @@ class MOL:
 
         # data storage
         self.df     = pd.DataFrame()
+        # save initial condition as well
+        self.df[self.t0] = y0
 
         # integrator
         self.ode    = None
@@ -81,8 +84,17 @@ class MOL:
 
     """ Integrate using MOL """
     def run(self):
-        while self.ode.successful() and self.ode.t < self.tf:
+        start = now()
+
+        while self.ode.successful() and self.ode.t <= self.tf:
             self.df[self.ode.t] = self.ode.integrate(self.ode.t + self.dt)
+
+            # tell the runner something about the status
+            #if self.ode.t > iteration * tenth_of_run_time:
+            end = now()
+            print('Simulation time: %.2g of %.2g in %s.' \
+                  % (self.ode.t, self.tf, format_delta(start, end)))
+            start = now()
 
 
     """ Internals """
@@ -102,7 +114,7 @@ class MOL:
     def _setup_integrator(self):
         self.ode = ode(self.f).set_integrator('rowmap', method='grk4t',
                                               dt=self.hi,
-                                              rtol=self.vtol, atol=self.vtol)
+                                              rtol=self.vtol, atol=self.vtol**2)
         self.ode.set_initial_value(self.y0.flatten(), self.t0)
 
 

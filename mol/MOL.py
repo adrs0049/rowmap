@@ -38,7 +38,7 @@
 
 """
 from __future__ import print_function, division
-from format_time import format_delta, now
+from .format_time import format_delta, now
 
 import numpy as np
 import pandas as pd
@@ -92,7 +92,7 @@ class MOL:
             # tell the runner something about the status
             #if self.ode.t > iteration * tenth_of_run_time:
             end = now()
-            print('Simulation time: %.2g of %.2g in %s.' \
+            print('Simulation time: %.2f of %.2f in %s.' \
                   % (self.ode.t, self.tf, format_delta(start, end)))
             start = now()
 

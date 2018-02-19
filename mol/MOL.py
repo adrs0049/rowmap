@@ -45,8 +45,8 @@ import numpy as np
 import pandas as pd
 from scipy.integrate import ode
 import rowmap.rowmap_ode_runner
-from InOut.io import writeDataFrame
-from InOut.Printer import Printer
+from iout.io import writeDataFrame
+from iout.Printer import Printer
 
 # TODO link these parameter classes directly to the mysql models
 

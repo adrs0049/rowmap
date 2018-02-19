@@ -134,6 +134,9 @@ class MOL:
         # write everything now
         self.write()
 
+        # print new line
+        print('\n')
+
 
     """ Internals """
     def _create_mol(self):

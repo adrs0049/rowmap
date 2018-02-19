@@ -40,10 +40,13 @@
 from __future__ import print_function, division
 from .format_time import format_delta, now
 
+import os
 import numpy as np
 import pandas as pd
 from scipy.integrate import ode
 import rowmap.rowmap_ode_runner
+from InOut.io import writeDataFrame
+from InOut.Printer import Printer
 
 # TODO link these parameter classes directly to the mysql models
 
@@ -63,9 +66,14 @@ class MOL:
         self.y0     = y0
 
         # data storage
-        self.df     = pd.DataFrame()
+        self.df             = pd.DataFrame()
+        self.df.name        = 'MOL_dataframe'
         # save initial condition as well
-        self.df[self.t0] = y0
+        self.df[self.t0]    = y0
+
+        # data output
+        self.outdir         = kwargs.pop('outdir', 'results')
+        self.name           = kwargs.pop('name'  , 'MOL_unnamed')
 
         # integrator
         self.ode    = None
@@ -82,9 +90,14 @@ class MOL:
         return 'MOL(t0 = %.2g, t = %.2g, tf = %.2g).' % (self.t0, self.ode.t, self.tf)
 
 
+    def write(self):
+        writeDataFrame(os.path.join(self.outdir, self.name + '.h5'), self.df)
+
+
     """ Integrate using MOL """
     def run(self):
-        start = now()
+        start       = now()
+        step_start  = now()
 
         while self.ode.successful() and self.ode.t <= self.tf:
             self.df[self.ode.t] = self.ode.integrate(self.ode.t + self.dt)
@@ -92,9 +105,15 @@ class MOL:
             # tell the runner something about the status
             #if self.ode.t > iteration * tenth_of_run_time:
             end = now()
-            print('Simulation time: %.2f of %.2f in %s.' \
-                  % (self.ode.t, self.tf, format_delta(start, end)))
-            start = now()
+            ostr = 'Simulation time: %.2f of %.2f in %s (step %s).' \
+                  % (self.ode.t, self.tf, format_delta(start, end),
+                     format_delta(step_start, end))
+
+            Printer(ostr)
+            step_start = now()
+
+        # write everything now
+        self.write()
 
 
     """ Internals """

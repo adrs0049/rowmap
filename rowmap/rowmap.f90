@@ -308,32 +308,32 @@
 
 ! Pointers in array "work".
 
-    print*, 'n=',n
-    print*, 'ifcn=',ifcn
-    print*, 't=',t
+    !print*, 'n=',n
+    !print*, 'ifcn=',ifcn
+    !print*, 't=',t
     !print*, 'u=',u
-    print*, 'tend=',tend
-    print*, 'hs=',hs
-    print*, 'rtol=',rtol(1)
-    print*, 'atol=',atol(1)
-    print*, 'itol=',itol
-    print*, 'ijacv=',ijacv
-    print*, 'ifdt=',ifdt
-    print*, 'iout=',iout
-    print*, 'step_tol=',work(1),work(2)
-    print*, 'safety=',work(3)
-    print*, 'eps=',work(4)
-    print*, 'ktol=',work(5)
-    print*, 'max_iter=',iwork(1)
-    print*, 'int_method=',iwork(2)
-    print*, 'mx=',iwork(3)
-    print*, 'lun=',iwork(4)
-    print*, 'lwork=',lwork
-    print*, 'liwork=',liwork
-    print*, 'rpar=',rpar(1)
-    print*, 'ipar=',ipar(1)
-    print*, 'idid=',idid
-    print*, 'Done'
+    !print*, 'tend=',tend
+    !print*, 'hs=',hs
+    !print*, 'rtol=',rtol(1)
+    !print*, 'atol=',atol(1)
+    !print*, 'itol=',itol
+    !print*, 'ijacv=',ijacv
+    !print*, 'ifdt=',ifdt
+    !print*, 'iout=',iout
+    !print*, 'step_tol=',work(1),work(2)
+    !print*, 'safety=',work(3)
+    !print*, 'eps=',work(4)
+    !print*, 'ktol=',work(5)
+    !print*, 'max_iter=',iwork(1)
+    !print*, 'int_method=',iwork(2)
+    !print*, 'mx=',iwork(3)
+    !print*, 'lun=',iwork(4)
+    !print*, 'lwork=',lwork
+    !print*, 'liwork=',liwork
+    !print*, 'rpar=',rpar(1)
+    !print*, 'ipar=',ipar(1)
+    !print*, 'idid=',idid
+    !print*, 'Done'
 
     mx=70
     if (iwork(3) > 19) mx=iwork(3)

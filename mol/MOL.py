@@ -45,8 +45,12 @@ import numpy as np
 import pandas as pd
 from scipy.integrate import ode
 import rowmap.rowmap_ode_runner
+
 from iout.io import writeDataFrame
 from iout.Printer import Printer
+
+# visualization
+from vis.plot import Plot
 
 # TODO link these parameter classes directly to the mysql models
 
@@ -71,6 +75,10 @@ class MOL:
         # save initial condition as well
         self.df[self.t0]    = y0
 
+        # live plotting
+        self.livePlotting = kwargs.pop('livePlotting', False)
+        self.plotter      = None
+
         # data output
         self.outdir         = kwargs.pop('outdir', 'results')
         self.name           = kwargs.pop('name'  , 'MOL_unnamed')
@@ -83,6 +91,13 @@ class MOL:
 
         # setup
         self._setup()
+
+
+    """ update the plotter """
+    def update_plot(self, t, y):
+        # update the plot
+        if self.livePlotting:
+            self.plotter.update(self.f.dom.xs(), y, title = 't = %.2f' % t)
 
 
     """ print info """
@@ -100,7 +115,8 @@ class MOL:
         step_start  = now()
 
         while self.ode.successful() and self.ode.t <= self.tf:
-            self.df[self.ode.t] = self.ode.integrate(self.ode.t + self.dt)
+            yt = self.ode.integrate(self.ode.t + self.dt)
+            self.df[self.ode.t] = yt
 
             # tell the runner something about the status
             #if self.ode.t > iteration * tenth_of_run_time:
@@ -108,6 +124,9 @@ class MOL:
             ostr = 'Simulation time: %.2f of %.2f in %s (step %s).' \
                   % (self.ode.t, self.tf, format_delta(start, end),
                      format_delta(step_start, end))
+
+            # update the plot
+            self.update_plot(self.ode.t, self.f.reshape(yt))
 
             Printer(ostr)
             step_start = now()
@@ -129,10 +148,12 @@ class MOL:
         # set ic in tdr
         #self.f.update(self.t0, self.y0)
 
+        if self.livePlotting:
+            self.plotter = Plot(self.f.dom.box(), labels=['a', 'b'])
+
 
     def _setup_integrator(self):
-        self.ode = ode(self.f).set_integrator('rowmap', method='grk4t',
-                                              dt=self.hi,
+        self.ode = ode(self.f).set_integrator('rowmap', method='grk4t', dt=self.hi,
                                               rtol=self.vtol, atol=self.vtol**2)
         self.ode.set_initial_value(self.y0.flatten(), self.t0)
 

@@ -147,6 +147,13 @@ class MOL:
         print('\n')
 
 
+    """ Change sizes """
+    def resetInitialCondition(self, y0):
+        self.y0 = y0
+        self._setup()
+        # UPDATE self.f
+
+
     """ Internals """
     def _create_mol(self):
         for patchId in self.grd.patches.keys():
@@ -170,7 +177,4 @@ class MOL:
         self.ode = ode(self.f).set_integrator('rowmap', method='grk4t', dt=self.hi,
                                               rtol=self.vtol, atol=self.vtol**2)
         self.ode.set_initial_value(self.y0.flatten(), self.t0)
-
-
-
 

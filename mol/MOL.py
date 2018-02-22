@@ -89,6 +89,9 @@ class MOL:
         # The right hand side
         self.f      = f(*args, **kwargs)
 
+        # machine eps
+        self.eps    = 1.e4 * np.finfo(float).eps
+
         # setup
         self._setup()
 
@@ -114,7 +117,7 @@ class MOL:
         start       = now()
         step_start  = now()
 
-        while self.ode.successful() and self.ode.t <= self.tf:
+        while self.ode.successful() and np.abs(self.tf - self.ode.t) > self.eps:
             yt = self.ode.integrate(self.ode.t + self.dt)
             self.df[self.ode.t] = yt
 

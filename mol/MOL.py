@@ -40,7 +40,7 @@
 from __future__ import print_function, division
 from .format_time import format_delta, now
 
-import os
+import os, time
 import numpy as np
 import pandas as pd
 from scipy.integrate import ode
@@ -156,6 +156,8 @@ class MOL:
 
         if self.livePlotting:
             self.plotter = Plot(self.f.dom.box(), labels=['a', 'b'])
+            self.plotter.initialize(self.f.dom.xs(), self.f.reshape(self.y0), title = "t = 0")
+            time.sleep(1.)
 
 
     def _setup_integrator(self):

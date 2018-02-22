@@ -49,8 +49,11 @@ import rowmap.rowmap_ode_runner
 from iout.io import writeDataFrame
 from iout.Printer import Printer
 
+from mol.Time import Time
+
 # visualization
 from vis.plot import Plot
+
 
 # TODO link these parameter classes directly to the mysql models
 
@@ -86,6 +89,9 @@ class MOL:
         # integrator
         self.ode    = None
 
+        # time control
+        self.time   = kwargs.pop('time', Time())
+
         # The right hand side
         self.f      = f(*args, **kwargs)
 
@@ -117,7 +123,7 @@ class MOL:
         start       = now()
         step_start  = now()
 
-        while self.ode.successful() and np.abs(self.tf - self.ode.t) > self.eps:
+        while self.ode.successful() and self.time.keepGoing(self.ode.t):
             yt = self.ode.integrate(self.ode.t + self.dt)
             self.df[self.ode.t] = yt
 

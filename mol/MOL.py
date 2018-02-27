@@ -61,13 +61,13 @@ class MOL:
     def __init__(self, f, y0, *args, **kwargs):
         self.version    = 'MOL-0.1'
 
+        # time control
+        self.time   = kwargs.pop('time', Time())
+
         # integrator control
-        self.t0     = kwargs.pop('t0', 0.)
-        self.tf     = kwargs.pop('tf', 1.)
-        self.dt     = kwargs.pop('dt', 1e-3)
         self.hi     = kwargs.pop('hi', 1e-3)
         self.vtol   = kwargs.pop('vtol', 1e-3)
-        self.tout   = np.arange(self.t0, self.tf, self.dt)
+        self.tout   = np.arange(self.time.t0, self.time.tf, self.time.dt)
 
         # lambdas to create initial condition
         self.y0     = y0
@@ -76,7 +76,7 @@ class MOL:
         self.df             = pd.DataFrame()
         self.df.name        = 'MOL_dataframe'
         # save initial condition as well
-        self.df[self.t0]    = y0
+        self.df[self.time.t0]    = y0
 
         # live plotting
         self.livePlotting = kwargs.pop('livePlotting', False)
@@ -85,18 +85,20 @@ class MOL:
         # data output
         self.outdir         = kwargs.pop('outdir', 'results')
         self.name           = kwargs.pop('name'  , 'MOL_unnamed')
+        self.save           = kwargs.pop('save', False)
 
         # integrator
         self.ode    = None
 
-        # time control
-        self.time   = kwargs.pop('time', Time())
 
         # The right hand side
         self.f      = f(*args, **kwargs)
 
         # machine eps
         self.eps    = 1.e4 * np.finfo(float).eps
+
+        # current solution
+        self.yt = None
 
         # setup
         self._setup()
@@ -115,7 +117,8 @@ class MOL:
 
 
     def write(self):
-        writeDataFrame(os.path.join(self.outdir, self.name + '.h5'), self.df)
+        if self.save:
+            writeDataFrame(os.path.join(self.outdir, self.name + '.h5'), self.df)
 
 
     """ Integrate using MOL """
@@ -123,19 +126,20 @@ class MOL:
         start       = now()
         step_start  = now()
 
+        print("MOL TIME:", self.time)
         while self.ode.successful() and self.time.keepGoing(self.ode.t):
-            yt = self.ode.integrate(self.ode.t + self.dt)
-            self.df[self.ode.t] = yt
+            self.yt = self.ode.integrate(self.ode.t + self.time.dt)
+            self.df[self.ode.t] = self.yt
 
             # tell the runner something about the status
             #if self.ode.t > iteration * tenth_of_run_time:
             end = now()
             ostr = 'Simulation time: %.2f of %.2f in %s (step %s).' \
-                  % (self.ode.t, self.tf, format_delta(start, end),
+                  % (self.ode.t, self.time.tf, format_delta(start, end),
                      format_delta(step_start, end))
 
             # update the plot
-            self.update_plot(self.ode.t, self.f.reshape(yt))
+            self.update_plot(self.ode.t, self.f.reshape(self.yt))
 
             Printer(ostr)
             step_start = now()
@@ -147,11 +151,24 @@ class MOL:
         print('\n')
 
 
-    """ Change sizes """
-    def resetInitialCondition(self, y0):
-        self.y0 = y0
-        self._setup()
-        # UPDATE self.f
+    def solution(self):
+        return self.f.reshape(self.yt)
+
+
+    #""" Change sizes """
+    #def resize(self, newsize):
+    #    # newsize tells use how many
+    #    if newsize > self.y0.shape[1]:
+    #        # Have to grow stuff
+    #        self.f.resizeDomain()
+    #        self.y0 = np.lib.pad(self.y0, 'constant', constant_values=(0))
+    #
+    #    elif newsize < self.y0.shape[1]:
+    #        # have to shrink stuff
+    #        self.f.resizeDomain()
+    #
+    #    self._setup()
+    #    # UPDATE self.f
 
 
     """ Internals """
@@ -176,5 +193,5 @@ class MOL:
     def _setup_integrator(self):
         self.ode = ode(self.f).set_integrator('rowmap', method='grk4t', dt=self.hi,
                                               rtol=self.vtol, atol=self.vtol**2)
-        self.ode.set_initial_value(self.y0.flatten(), self.t0)
+        self.ode.set_initial_value(self.y0.flatten(), self.time.t0)
 

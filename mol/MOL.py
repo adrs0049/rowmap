@@ -126,7 +126,7 @@ class MOL:
         start       = now()
         step_start  = now()
 
-        print("MOL TIME:", self.time)
+        #print("MOL TIME:", self.time)
         while self.ode.successful() and self.time.keepGoing(self.ode.t):
             self.yt = self.ode.integrate(self.ode.t + self.time.dt)
             self.df[self.ode.t] = self.yt
@@ -148,7 +148,7 @@ class MOL:
         self.write()
 
         # print new line
-        print('\n')
+        #print('\n')
 
 
     def solution(self):

@@ -103,7 +103,7 @@ class rowmap(IntegratorBase):
         has_jac - user supplied jacobian
         """
 
-        print('Calling reset n=%d' % n)
+        #print('Calling reset n=%d' % n)
         # n - number of equations
         # has_jac - whether user has supplied its own Jacobian
         self.iwork = self._get_iwork()

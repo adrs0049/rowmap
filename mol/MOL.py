@@ -87,6 +87,9 @@ class MOL:
         self.name           = kwargs.pop('name'  , 'MOL_unnamed')
         self.save           = kwargs.pop('save', False)
 
+        # set default verbosity
+        self.verbose        = kwargs.pop('verbose', False)
+
         # integrator
         self.ode    = None
 
@@ -134,14 +137,15 @@ class MOL:
             # tell the runner something about the status
             #if self.ode.t > iteration * tenth_of_run_time:
             end = now()
-            ostr = 'Simulation time: %.2f of %.2f in %s (step %s).' \
-                  % (self.ode.t, self.time.tf, format_delta(start, end),
-                     format_delta(step_start, end))
+            if self.verbose:
+                ostr = 'Simulation time: %.2f of %.2f in %s (step %s).' \
+                    % (self.ode.t, self.time.tf, format_delta(start, end),
+                       format_delta(step_start, end))
 
             # update the plot
             self.update_plot(self.ode.t, self.f.reshape(self.yt))
 
-            Printer(ostr)
+            if self.verbose: Printer(ostr)
             step_start = now()
 
         # write everything now

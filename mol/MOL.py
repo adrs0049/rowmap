@@ -77,6 +77,9 @@ class MOL:
 
         # data storage
         self.dfs = {}
+        if self.noEqs == 1:
+            y0 = np.reshape(y0, (1, y0.size))
+
         for i in range(self.noEqs):
             self.dfs[i] = pd.DataFrame()
             self.dfs[i].name = 'MOL_dataframe' + str(i)

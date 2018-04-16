@@ -1,3 +1,8 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Author: Andreas Buttenschoen
+from __future__ import print_function
+
 from scipy.integrate._ode import IntegratorBase
 import numpy as np
 import _rowmap

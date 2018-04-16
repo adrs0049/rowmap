@@ -49,7 +49,7 @@ import rowmap.rowmap_ode_runner
 from iout.io import writeDataFrame
 from iout.Printer import Printer
 
-from mol.Time import Time
+from model.Time import Time
 
 # visualization
 from vis.plot import Plot
@@ -72,11 +72,15 @@ class MOL:
         # lambdas to create initial condition
         self.y0     = y0
 
+        # no-equations
+        self.noEqs = self._get_no_eqns()
+
         # data storage
-        self.df             = pd.DataFrame()
-        self.df.name        = 'MOL_dataframe'
-        # save initial condition as well
-        self.df[self.time.t0]    = y0
+        self.dfs = {}
+        for i in range(self.noEqs):
+            self.dfs[i] = pd.DataFrame()
+            self.dfs[i].name = 'MOL_dataframe' + str(i)
+            self.dfs[i][self.time.t0] = y0[i, :]
 
         # live plotting
         self.livePlotting = kwargs.pop('livePlotting', False)
@@ -107,6 +111,15 @@ class MOL:
         self._setup()
 
 
+    """ Determine the number of equations """
+    def _get_no_eqns(self):
+        shape = self.y0.shape
+        if len(shape) > 1:
+            return shape[0]
+        else:
+            return 1
+
+
     """ update the plotter """
     def update_plot(self, t, y):
         # update the plot
@@ -124,6 +137,12 @@ class MOL:
             writeDataFrame(os.path.join(self.outdir, self.name + '.h5'), self.df)
 
 
+    """ Update the local dataframe """
+    def _writeToLocalDataFrame(self, y, t):
+        for i in range(self.noEqs):
+            self.dfs[i][t] = y[i, :]
+
+
     """ Integrate using MOL """
     def run(self):
         start       = now()
@@ -132,7 +151,11 @@ class MOL:
         #print("MOL TIME:", self.time)
         while self.ode.successful() and self.time.keepGoing(self.ode.t):
             self.yt = self.ode.integrate(self.ode.t + self.time.dt)
-            self.df[self.ode.t] = self.yt
+
+            # reformat yt
+            yf = self.f.reshape(self.yt)
+
+            self._writeToLocalDataFrame(yf, self.ode.t)
 
             # tell the runner something about the status
             #if self.ode.t > iteration * tenth_of_run_time:
@@ -143,7 +166,7 @@ class MOL:
                        format_delta(step_start, end))
 
             # update the plot
-            self.update_plot(self.ode.t, self.f.reshape(self.yt))
+            self.update_plot(self.ode.t, yf)
 
             if self.verbose: Printer(ostr)
             step_start = now()

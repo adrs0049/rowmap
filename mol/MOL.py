@@ -81,13 +81,10 @@ class MOL:
         if self.noEqs == 1:
             y0 = np.reshape(y0, (1, y0.size))
 
-        print('noEqs:',self.noEqs)
         for i in range(self.noEqs):
             self.dfs[i] = pd.DataFrame()
             self.dfs[i].name = 'MOL_dataframe' + str(i)
-            yy = y0[i, :].flatten()
-            print('y0:', yy.shape)
-            self.dfs[i][self.time.t0] = y0[i, :].flatten()
+            self.dfs[i][float(self.time.t0)] = y0[i, :].flatten()
 
         # live plotting
         self.livePlotting = kwargs.pop('livePlotting', False)
@@ -137,7 +134,7 @@ class MOL:
 
     """ print info """
     def __str__(self):
-        return 'MOL(t0 = %.2g, t = %.2g, tf = %.2g).' % (self.t0, self.ode.t, self.tf)
+        return 'MOL(%s).' % (self.time)
 
 
     def write(self):

@@ -81,10 +81,13 @@ class MOL:
         if self.noEqs == 1:
             y0 = np.reshape(y0, (1, y0.size))
 
+        print('noEqs:',self.noEqs)
         for i in range(self.noEqs):
             self.dfs[i] = pd.DataFrame()
             self.dfs[i].name = 'MOL_dataframe' + str(i)
-            self.dfs[i][self.time.t0] = y0[i, :]
+            yy = y0[i, :].flatten()
+            print('y0:', yy.shape)
+            self.dfs[i][self.time.t0] = y0[i, :].flatten()
 
         # live plotting
         self.livePlotting = kwargs.pop('livePlotting', False)
@@ -118,6 +121,7 @@ class MOL:
     """ Determine the number of equations """
     def _get_no_eqns(self):
         shape = self.y0.shape
+        print('shape:',shape)
         if len(shape) > 1:
             return shape[0]
         else:
@@ -144,7 +148,8 @@ class MOL:
     """ Update the local dataframe """
     def _writeToLocalDataFrame(self, y, t):
         for i in range(self.noEqs):
-            self.dfs[i][t] = y[i, :]
+            yy = y[i, :].flatten()
+            self.dfs[i][t] = yy
 
 
     """ Integrate using MOL """

@@ -103,7 +103,7 @@ class MOL:
 
 
         # The right hand side
-        self.f      = f(*args, **kwargs)
+        self.f      = f(noPDEs = self.noEqs, *args, **kwargs)
 
         # machine eps
         self.eps    = 1.e4 * np.finfo(float).eps

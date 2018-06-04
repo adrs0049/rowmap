@@ -76,31 +76,23 @@ class MOL:
         # no-equations
         self.noEqs = self._get_no_eqns()
 
-        # data storage
-        self.dfs = {}
-        if self.noEqs == 1:
-            y0 = np.reshape(y0, (1, y0.size))
-
-        for i in range(self.noEqs):
-            self.dfs[i] = pd.DataFrame()
-            self.dfs[i].name = 'MOL_dataframe' + str(i)
-            self.dfs[i][float(self.time.t0)] = y0[i, :].flatten()
-
         # live plotting
         self.livePlotting = kwargs.pop('livePlotting', False)
         self.plotter      = None
 
         # data output
         self.outdir         = kwargs.pop('outdir', 'results')
-        self.name           = kwargs.pop('name'  , 'MOL_unnamed')
         self.save           = kwargs.pop('save', False)
+        self.name           = kwargs.pop('name'  , 'MOL_unnamed')
+
+        # if not h5 output save a dataframe
+        self._setup_df_output(y0)
 
         # set default verbosity
         self.verbose        = kwargs.pop('verbose', False)
 
         # integrator
         self.ode    = None
-
 
         # The right hand side
         self.f      = f(noPDEs = self.noEqs, *args, **kwargs)
@@ -118,11 +110,32 @@ class MOL:
     """ Determine the number of equations """
     def _get_no_eqns(self):
         shape = self.y0.shape
-        print('shape:',shape)
         if len(shape) > 1:
             return shape[0]
         else:
             return 1
+
+    """ setup dataframe output """
+    def _create_outdir(self):
+        if os.path.exists(self.outdir) and not os.path.isdir(self.outdir):
+            assert False, '%s exists but is not a directory!' % self.outdir
+
+        if not os.path.exists(self.outdir):
+            os.makedirs(self.outdir)
+
+
+    def _setup_df_output(self, y0):
+        self._create_outdir()
+
+        # data storage
+        self.dfs = {}
+        if self.noEqs == 1:
+            y0 = np.reshape(y0, (1, y0.size))
+
+        for i in range(self.noEqs):
+            self.dfs[i] = pd.DataFrame()
+            self.dfs[i].name = 'MOL_dataframe' + str(i)
+            self.dfs[i][float(self.time.t0)] = y0[i, :].flatten()
 
 
     """ update the plotter """
@@ -138,8 +151,11 @@ class MOL:
 
 
     def write(self):
-        if self.save:
-            writeDataFrame(os.path.join(self.outdir, self.name + '.h5'), self.df)
+        if not self.save:
+            return
+
+        # TODO make this general!
+        writeDataFrame(os.path.join(self.outdir, self.name + '.h5'), self.dfs[0])
 
 
     """ Update the local dataframe """

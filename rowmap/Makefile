@@ -24,7 +24,8 @@ all: $(MODULE)
 	touch .refresh
 
 $(MODULE): $(SOURCES)
-	f2py $(INCLUDES) $(LIBS) -c $(MODULE).pyf -m $(MODULE) rowmap.f90
+	python2 -m numpy.f2py $(INCLUDES) $(LIBS) -c $(MODULE).pyf -m $(MODULE) rowmap.f90
+	#f2py $(INCLUDES) $(LIBS) -c $(MODULE).pyf -m $(MODULE) rowmap.f90
 
 .PHONY: setup clean force all
 

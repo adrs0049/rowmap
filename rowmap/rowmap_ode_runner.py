@@ -5,7 +5,7 @@ from __future__ import print_function
 
 from scipy.integrate._ode import IntegratorBase
 import numpy as np
-import _rowmap
+import rowmap._rowmap as _rowmap
 
 import re
 import warnings

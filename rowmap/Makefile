@@ -12,7 +12,8 @@ MODULE=_rowmap
 SOURCES=$(MODULE).pyf rowmap.f90
 INCLUDES=
 #LIBS=-L/opt/intel/compilers_and_libraries_2016.2.181/linux/mkl/lib/intel64 -lmkl
-LIBS=-llapack
+#LIBS=-llapack -lblas
+LIBS=-lblas
 #LIBS=-lmkl_rt
 
 

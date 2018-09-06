@@ -172,7 +172,14 @@ class MOL:
 
         #print("MOL TIME:", self.time)
         while self.ode.successful() and self.time.keepGoing(self.ode.t):
-            self.yt = self.ode.integrate(self.ode.t + self.time.dt)
+            try:
+                self.yt = self.ode.integrate(self.ode.t + self.time.dt)
+            except ValueError as e:
+                # force a write of the current state
+                self.write()
+                yf = self.f.reshape(self.yt)
+                self._writeToLocalDataFrame(yf, self.ode.t)
+                raise e
 
             # reformat yt
             yf = self.f.reshape(self.yt)

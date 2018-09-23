@@ -247,8 +247,11 @@ class MOL:
 
 
     def _setup_integrator(self):
+        # check if rhs is autonomous
+        ifcn = 0 if self.f.isAutonomous() else 1
+
         self.ode = ode(self.f).set_integrator('rowmap', method='grk4t', dt=self.hi,
-                                              rtol=self.vtol,
+                                              rtol=self.vtol, ifcn=ifcn,
                                               atol=self.vtol**2,
                                               ktol = self.ktol)
 

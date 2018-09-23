@@ -145,7 +145,7 @@ if __name__ == '__main__':
     while True:
         nt = t + dt
         t, u, hs, iwork, idid = rowmap.rowmap(p, t, u0, t + dt, dt, rtol, atol,
-                                              work, iwork, rpar, ipar)
+                                              work, iwork, rpar, ipar, ifcn=1)
 
         df[t] = u.copy()
         df_anal[t] = analytic(nt, x)

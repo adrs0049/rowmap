@@ -32,7 +32,7 @@ class rowmap(IntegratorBase):
                  rtol=1e-6, atol=1e-12,
                  lbd=0.25, ubd=2., step_safety=0.8,
                  ktol=1.e-1, max_iter=100000, mx=90,
-                 lun=6, dt=0.1,
+                 lun=6, dt=0.1, *args, **kwargs
                 ):
 
         # set method
@@ -69,6 +69,9 @@ class rowmap(IntegratorBase):
         # max krlov subspace size
         self.mx = mx
         self.success = 1
+
+        # sets whether rhs is autonomous or non-autonomous
+        self.ifcn  = kwargs.pop('ifcn', 0)
 
         # todo these are f, jac etc number of parameters
         self.rpar = 1.
@@ -118,6 +121,8 @@ class rowmap(IntegratorBase):
                           self.work, self.iwork,
                           self.rpar, self.ipar]
 
+        self.call_kwargs  = {'ifcn' : self.ifcn}
+
         self.success = 1
         self.initialized = False
 
@@ -134,12 +139,18 @@ class rowmap(IntegratorBase):
             self.acquire_new_handle()
 
         args    = ((f, t0, y0, t1) + tuple(self.call_args))
-        t, y1, hs, iwork, idid = self.runner(*args)
+        t, y1, hs, iwork, idid = self.runner(*args, **self.call_kwargs)
 
         if idid < 0:
             warnings.warn(self.__class__.__name__ + ': ' +
                           self.messages.get(idid, 'Unexpected idid=%s' % idid))
             self.success = 0
+
+
+        # safe these values for inspection
+        self.hs     = hs
+        self.iwork  = iwork
+        self.idid   = idid
 
         return y1, t
 

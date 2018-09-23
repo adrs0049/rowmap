@@ -95,7 +95,7 @@ class MOL:
         self.ode    = None
 
         # The right hand side
-        self.f      = f(noPDEs = self.noEqs, *args, **kwargs)
+        self.f      = f(noPDEs = self.noEqs, t0 = self.time.t0, *args, **kwargs)
 
         # machine eps
         self.eps    = 1.e4 * np.finfo(float).eps

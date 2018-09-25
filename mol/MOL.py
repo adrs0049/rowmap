@@ -176,6 +176,7 @@ class MOL:
                 self.yt = self.ode.integrate(self.ode.t + self.time.dt)
             except ValueError as e:
                 # force a write of the current state
+                assert self.yt is not None, 'MOL error: solver returned None type!'
                 self.write()
                 yf = self.f.reshape(self.yt)
                 self._writeToLocalDataFrame(yf, self.ode.t)

@@ -38,7 +38,7 @@
 
 """
 from __future__ import print_function, division
-from .format_time import format_delta, now
+from iout.format_time import format_delta, now
 
 import os, time
 import numpy as np

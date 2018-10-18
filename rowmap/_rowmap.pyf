@@ -45,7 +45,7 @@ end python module rowmap__user__routines
 
 python module _rowmap ! in 
     interface  ! in :_rowmap
-        subroutine rowmap(n,f,ifcn,t,u,tend,hs,rtol,atol,itol,ijacv,ifdt,iout,work,lwork,iwork,liwork,rpar,ipar,idid) ! in :_rowmap:rowmap.f90
+        subroutine rowmap(n,f,ifcn,t,u,tend,hs,rtol,atol,itol,ijacv,ifdt,iout,work,lwork,iwork,liwork,rpar,ipar,idid,jacv,fdt,solout) ! in :_rowmap:rowmap.f90
             use rowmap__user__routines
             integer optional,intent(in),check(len(u)>=n),depend(u) :: n=len(u)
             external f
@@ -85,9 +85,9 @@ python module _rowmap ! in
             real*8 :: fac2
             real*8 :: fac3
             integer :: nstpx
-            external, optional,intent(callback),check(iout==1),depend(iout) :: solout
-            external, optional,intent(callback),check(ijacv==1),depend(ijacv) :: jacv
-            external, optional,intent(callback),check(ifdt==1),check(ifcn==1),depend(ifdr) ::fdt
+            external, optional,check(iout==1),depend(iout) :: solout
+            external, optional,check(ijacv==1),depend(ijacv) :: jacv
+            external, optional,check(ifdt==1),check(ifcn==1),depend(ifdt) ::fdt
             common /rowmap1/ nfeval,nsteps,nstepsr,nfdt,njacv,nkrydim
             common /rowmap0/ uround,cifcn,citol,cijacv,cifdt,ciout,method,lun
             common /rowmap2/ fac1,fac2,fac3,nstpx

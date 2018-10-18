@@ -1,7 +1,7 @@
 ! FILE: rowmap.f
     subroutine rowmap(n,f,ifcn,t,u,tend,hs,rtol,atol,itol, &
-    ijacv,ifdt,iout,work,lwork,iwork,liwork,rpar,ipar,idid, &
-    jacv,fdt,solout)
+      ijacv,ifdt,iout,work,lwork,iwork,liwork,rpar,ipar,idid, &
+      jacv,fdt,solout)
 
 !-----!-----------------------------------------------------------------
 
@@ -158,40 +158,47 @@
 !               real*8 rpar(*)
 !               ...
 !               end
-
+!
 !            "intr" serves to interrupt the integration. If solout sets
 !             intr .lt. 0, then ROWMAP returns to the calling program.
-
+!
 !            solout may produce continuous output by calling the internal
 !            subroutine "rowcon" (see below).
-
+!
 !   iout   = Gives information on the subroutine solout:
 !               iout = 0: subroutine is never called
 !               iout = 1: subroutine is used for output (default)
-
+!
 !   work   = Array of working space of length "lwork", changed on exit.
 !            Serves as working space for all vectors and matrices.
 !            The array is used for optional input. For zero input, the
 !            default values are set:
-
+!
 !            work(1), work(2) -  Parameters for step size selection.
 !               The new step size is chosen subject to the restriction
 !                  work(1) <= hsnew/hsold <= work(2)
 !                Default values: work(1)=0.25d0, work(2)=2d0
-
+!
 !            work(3) - The safety factor in step size prediction.
 !                Default value: work(3)=0.8d0
-
+!
 !            work(4) - UROUND, the machine precision/rounding unit.
 !                Default value: work(4)=1d-16
-
+!
 !            work(5) - KTOL, tolerance for the iterative solution of
 !                the linear equations. The code keeps the weighted
 !                root-mean-square norm of the residual of the first stage
 !                below KTOL/HS, where HS is the current step size
 !                (see also ATOL/RTOL).
 !                Default value: work(5)=1d-1.
-
+!
+!             work(6) - MAXSTP, maximum step size to use for a time step,
+!                except for possibly the last time step. If provided value
+!                is less or equal zero then no restriction applies.
+!                Default value: work(6) = 0d0 (no restriction on).
+!                This feature was added: March 6, 2009 (by A Gerisch)
+!
+!
 !   lwork  = Length of array work in calling program.
 !            "lwork" must be at least: 10+n*(mx+11)+mx*(mx+4),
 !            where mx=iwork(3).
@@ -263,7 +270,7 @@
     integer,    intent(in)  :: itol, iout, ijacv, ifdt, ifcn
     integer,    intent(in)  :: ipar(*)
     integer,    intent(out) :: idid
-   
+
     double precision,     intent(in)      :: tend
     double precision,     intent(in)      :: work(lwork)
     double precision,     intent(in)      :: rpar(*), rtol(*), atol(*)
@@ -276,15 +283,14 @@
     !f2py intent (callback) fdt
     !f2py external, optional,intent(callback) :: fdt
     external fdt
-    
+
     !f2py intent (callback) solout
     !f2py external solout
     external solout
-    
+
     !f2py intent (callback) jacv
     !f2py external jacv
     external jacv
-
 
 ! Globals.
 
@@ -303,37 +309,10 @@
 ! Parameters for step size control.
 
     integer :: nstpx
-    real*8 :: fac1,fac2,fac3
-    common  /rowmap2 /fac1,fac2,fac3,nstpx
+    real*8 :: fac1,fac2,fac3,MAXstp
+    common  /rowmap2 /fac1,fac2,fac3,MAXstp,nstpx
 
 ! Pointers in array "work".
-
-    !print*, 'n=',n
-    !print*, 'ifcn=',ifcn
-    !print*, 't=',t
-    !print*, 'u=',u
-    !print*, 'tend=',tend
-    !print*, 'hs=',hs
-    !print*, 'rtol=',rtol(1)
-    !print*, 'atol=',atol(1)
-    !print*, 'itol=',itol
-    !print*, 'ijacv=',ijacv
-    !print*, 'ifdt=',ifdt
-    !print*, 'iout=',iout
-    !print*, 'step_tol=',work(1),work(2)
-    !print*, 'safety=',work(3)
-    !print*, 'eps=',work(4)
-    !print*, 'ktol=',work(5)
-    !print*, 'max_iter=',iwork(1)
-    !print*, 'int_method=',iwork(2)
-    !print*, 'mx=',iwork(3)
-    !print*, 'lun=',iwork(4)
-    !print*, 'lwork=',lwork
-    !print*, 'liwork=',liwork
-    !print*, 'rpar=',rpar(1)
-    !print*, 'ipar=',ipar(1)
-    !print*, 'idid=',idid
-    !print*, 'Done'
 
     mx=70
     if (iwork(3) > 19) mx=iwork(3)
@@ -385,6 +364,8 @@
     if (fac1 >= 1 .OR. fac1 < 1d-2) fac1=0.25d0
     if (fac2 <= 1 .OR. fac2 > 1d+2) fac2=2d0
     if (fac3 < 1d-1 .OR. fac3 >= 1d0) fac3=0.8d0
+    MAXstp = work(6)
+    if (MAXstp > 0d0) MAXstp = 0d0
 ! The rounding unit.
     uround=1d-16
     if (work(4) > 1d-40 .AND. work(4) < 1d-5) uround=work(4)
@@ -401,7 +382,6 @@
 !     logical output unit number for messages
     lun=6
     if (iwork(4) > 0) lun=iwork(4)
-         
 
 ! Call to core integrator.
 
@@ -418,10 +398,10 @@
 
 ! Statistics:
 
-    iwork(5) = nsteps
-    iwork(6) = nstepsr
-    iwork(7) = nfeval
-    iwork(8) = njacv
+    iwork(5)  = nsteps
+    iwork(6)  = nstepsr
+    iwork(7)  = nfeval
+    iwork(8)  = njacv
     return
     end subroutine rowmap
 
@@ -505,8 +485,8 @@
 
 !     For step size control.
     integer :: nstpx
-    real*8 :: fac1,fac2,fac3
-    common  /rowmap2 /fac1,fac2,fac3,nstpx
+    real*8 :: fac1,fac2,fac3,MAXstp
+    common  /rowmap2 /fac1,fac2,fac3,MAXstp,nstpx
 
 !     "unorm" is used in subroutine "ROWDQ".
     common /rownorm/unorm
@@ -553,6 +533,7 @@
         hs=dnrm2(n,scal,1)/dsqrt(dfloat(n))
         hs=(1d0/hs)**0.25*1d-1
     end if
+    if (MAXstp > 0d0) Hs = dmin1(Hs, MAXstp)
     if ((t+hs*1.005) >= tend) then
         hs=tend-t
         reached= .TRUE. 
@@ -786,12 +767,13 @@
     else
         call orthov(n,mk,q,rhs,l,mx)
     end if
+
     nrmv=dnrm2(n,rhs,1)
-    if (nrmv/(1d-12+nrmrhs) >= 1d-8 .OR. st < 4) then
-    
+    if (nrmv/(1d-12+nrmrhs) >= 1d-8 .AND. st < 4.) then
+
     ! Insert the new (orthogonalized) right hand side "rhs" as
     ! new column in Q.
-    
+
         if (mk > 0) asv=asv+1
     !        Shift last vectors by 1.
         do 100 i=asv-1,1,-1
@@ -800,6 +782,7 @@
         do 101 i=1,mk
             if(kl(i) >= mk+1) kl(i)=kl(i)+1
         101 END DO
+
         l(mk+1)=nrmv
         call dcopy(n,rhs,1,q(1,mk+1),1)
         call dscal(n,1d0/l(mk+1),q(1,mk+1),1)
@@ -813,6 +796,7 @@
     if (m > mk) then
         kl(m)=m+asv
     end if
+
     call kryarn(n,t,u,mk,m,kl,q,h,mx,ehg,l,fm,fu0,f,jacv,rpar,ipar)
     if (m > mk-st+asv .AND. m >= asv .AND. dabs(h(m,m)) < uround) then
     !        matrix is singular
@@ -856,12 +840,15 @@
     implicit none
     integer :: n,m,mx,i
     real*8 :: q(n,*), v(n),l(mx),s,ddot
+
     do 100 i=1,m
         s=ddot(n,q(1,i),1,v,1)
         l(i)=s
         call daxpy(n,-s,q(1,i),1,v,1)
     100 END DO
+
     call dcopy(mx-m,0d0,0,l(m+1),1)
+
     return
     end subroutine orthov
 
@@ -914,6 +901,7 @@
     real*8 ::  u(n),t,q(n,*),h(mx,*),ehg,l(*), c,s,fm(n),fu0(n)
     real*8 ::  rpar(*)
     external f,jacv
+
     if (m > mk) call reortn(n,m,kl,q,h,mx)
     l(m) = -l(m)
     j0 = m
@@ -945,6 +933,7 @@
         call jacv(n,t,u,q(1,m),q(1,kl(m)),rpar,ipar)
     end if
     njacv=njacv+1
+
     call orthov(n,m,q,q(1,kl(m)),h(1,m),mx)
     h(m,m) = h(m,m)-ehg
 !     update the QR-decomposition of matrix "h"
@@ -1044,6 +1033,7 @@
     common /rownorm/ unorm
     delta=1.d-7*dmax1(1d-5,unorm)
     eddelta=1d0/delta
+
     call dcopy(n,u,1,fu0,1)
     call daxpy(n,delta,y,1,fu0,1)
     call f(n,t,fu0,v,rpar,ipar)

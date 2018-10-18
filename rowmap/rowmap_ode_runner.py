@@ -26,14 +26,18 @@ class rowmap(IntegratorBase):
     supports_step = 0
     active_global_handle = 0
 
+    """ Dummy callback functions """
+    def dummy_callback(self, *args, **kwargs):
+        pass
+
+
     def __init__(self,
                  method='grk4t',
                  with_jacobian=False,
                  rtol=1e-6, atol=1e-12,
                  lbd=0.25, ubd=2., step_safety=0.8,
                  ktol=1.e-1, max_iter=100000, mx=90,
-                 lun=6, dt=0.1, *args, **kwargs
-                ):
+                 lun=6, dt=0.1, *args, **kwargs):
 
         # set method
         if re.match(method, r'shampine', re.I):
@@ -51,34 +55,50 @@ class rowmap(IntegratorBase):
         else:
             raise ValueError('Unknown integration method %s' % method)
 
-        self.with_jacobian = with_jacobian
-        self.rtol = rtol
-        self.atol = atol
+        self.with_jacobian  = with_jacobian
+        self.rtol           = rtol
+        self.atol           = atol
 
         # lower and upper step bounds
-        self.lbd = lbd
-        self.ubd = ubd
-        self.step_safety = step_safety
-        self.ktol = ktol
-        self.max_iter = max_iter
-        self.dt = dt
+        self.lbd            = lbd
+        self.ubd            = ubd
+        self.step_safety    = step_safety
+        self.ktol           = ktol
+        self.max_iter       = max_iter
+        self.dt             = dt
 
         # solver output
-        self.lun = lun
+        self.lun            = lun
 
         # max krlov subspace size
-        self.mx = mx
-        self.success = 1
+        self.mx             = mx
+        self.success        = 1
 
         # sets whether rhs is autonomous or non-autonomous
-        self.ifcn  = kwargs.pop('ifcn', 0)
+        self.ifcn           = kwargs.pop('ifcn', 0)
+
+        # external functions
+        self.solout         = kwargs.pop('solout', None)
+        self.fdt            = kwargs.pop('fdt'   , None)
+        self.jacv           = kwargs.pop('jacv'  , None)
+
+        # If we provide a time derivative of f then we must be non-auto
+        if self.fdt is not None:
+            self.ifcn = 1
+
+        # rowmap control pars map
+        self.ccontrol       = {'solout' : 'iout', 'fdt' : 'ifdt', 'jacv' : 'ijacv'}
 
         # todo these are f, jac etc number of parameters
-        self.rpar = 1.
-        self.ipar = 1
+        self.rpar           = 1.
+        self.ipar           = 1
+
+        # debug control
+        self.debug          = kwargs.pop('debug', False)
+        self.verbose        = kwargs.pop('verbose', False)
 
         # keep track of init status
-        self.initialized = False
+        self.initialized    = False
 
 
     def _get_iwork(self):
@@ -105,6 +125,17 @@ class rowmap(IntegratorBase):
         return work
 
 
+    def _compute_callback_options(self, kwargs):
+        for callback_name in ['solout', 'fdt', 'jacv']:
+            callback = getattr(self, callback_name)
+            control_name = self.ccontrol[callback_name]
+
+            kwargs[control_name]  = 1 if callback is not None else 0
+            kwargs[callback_name] = callback if callback is not None else self.dummy_callback
+
+        return kwargs
+
+
     def reset(self, n, has_jac):
         """ Prepare integrator for call: allocate memory, set flags etc.
         n - number of equations.
@@ -123,6 +154,9 @@ class rowmap(IntegratorBase):
 
         self.call_kwargs  = {'ifcn' : self.ifcn}
 
+        # check if we should enable any callbacks
+        self._compute_callback_options(self.call_kwargs)
+
         self.success = 1
         self.initialized = False
 
@@ -139,6 +173,11 @@ class rowmap(IntegratorBase):
             self.acquire_new_handle()
 
         args    = ((f, t0, y0, t1) + tuple(self.call_args))
+
+        if self.debug:
+            print('Args:', args)
+            print('kwargs:', self.call_kwargs)
+
         t, y1, hs, iwork, idid = self.runner(*args, **self.call_kwargs)
 
         if idid < 0:
@@ -146,13 +185,26 @@ class rowmap(IntegratorBase):
                           self.messages.get(idid, 'Unexpected idid=%s' % idid))
             self.success = 0
 
+        if np.any(np.isnan(y1)):
+            warnings.warn(self.__class__.__name__ + ': ' + ' Rowmap produced NaN. '\
+                          + self.messages.get(idid, 'Exit code idid=%s' % idid))
+            self.success = 0
 
         # safe these values for inspection
         self.hs     = hs
         self.iwork  = iwork
         self.idid   = idid
 
+        # IMPROVE THIS!
+        if self.verbose:
+            print(self.statistics())
+
         return y1, t
+
+
+    def statistics(self):
+        return 'Computed steps %d; Rejected steps %d; Function evals %d; Mat-Vec products %d;' \
+                % (self.iwork[4], self.iwork[5], self.iwork[6], self.iwork[7])
 
 
 if rowmap.runner:

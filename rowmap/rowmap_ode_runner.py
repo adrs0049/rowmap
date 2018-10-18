@@ -31,6 +31,13 @@ class rowmap(IntegratorBase):
         pass
 
 
+    """ Simple callback that checks for NaN """
+    def check_nan_callback(self, told, tnew, uold, unew, fold, fnew, ucon, intr, ipar):
+        if np.any(np.isnan(unew)):
+            warnings.warn(self.__class__.__name__ + ': ' + ' Rowmap produced NaN.')
+            self.success = 0
+
+
     def __init__(self,
                  method='grk4t',
                  with_jacobian=False,
@@ -185,11 +192,6 @@ class rowmap(IntegratorBase):
                           self.messages.get(idid, 'Unexpected idid=%s' % idid))
             self.success = 0
 
-        if np.any(np.isnan(y1)):
-            warnings.warn(self.__class__.__name__ + ': ' + ' Rowmap produced NaN. '\
-                          + self.messages.get(idid, 'Exit code idid=%s' % idid))
-            self.success = 0
-
         # safe these values for inspection
         self.hs     = hs
         self.iwork  = iwork
@@ -203,8 +205,10 @@ class rowmap(IntegratorBase):
 
 
     def statistics(self):
-        return 'Computed steps %d; Rejected steps %d; Function evals %d; Mat-Vec products %d;' \
-                % (self.iwork[4], self.iwork[5], self.iwork[6], self.iwork[7])
+        return '\tComputed steps %d\n\tRejected steps %d\n\tFunction evals %d'\
+                '\n\tMat-Vec products %d\n\ths %.4g\n\tidid %d.'\
+                % (self.iwork[4], self.iwork[5], self.iwork[6], self.iwork[7],
+                  self.hs, self.idid)
 
 
 if rowmap.runner:

@@ -43,7 +43,7 @@ class rowmap(IntegratorBase):
                  with_jacobian=False,
                  rtol=1e-6, atol=1e-12,
                  lbd=0.25, ubd=2., step_safety=0.8,
-                 ktol=1.e-1, max_iter=100000, mx=90,
+                 ktol=1.e-1, max_iter=1000, mx=90,
                  lun=6, dt=0.1, *args, **kwargs):
 
         # set method
@@ -103,6 +103,11 @@ class rowmap(IntegratorBase):
         # debug control
         self.debug          = kwargs.pop('debug', False)
         self.verbose        = kwargs.pop('verbose', False)
+
+        # if debug call NaN check
+        if self.debug:
+            print('Register NaN check!')
+            self.solout     = self.check_nan_callback
 
         # keep track of init status
         self.initialized    = False
@@ -200,6 +205,9 @@ class rowmap(IntegratorBase):
         # IMPROVE THIS!
         if self.verbose:
             print(self.statistics())
+
+        if not self.success:
+            print('ROWMAP: Failure!')
 
         return y1, t
 

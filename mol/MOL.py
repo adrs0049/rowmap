@@ -90,6 +90,7 @@ class MOL:
 
         # set default verbosity
         self.verbose        = kwargs.pop('verbose', False)
+        self.debug          = kwargs.pop('debug',   False)
 
         # integrator
         self.ode    = None
@@ -254,7 +255,8 @@ class MOL:
         self.ode = ode(self.f).set_integrator('rowmap', method='grk4t', dt=self.hi,
                                               rtol=self.vtol, ifcn=ifcn,
                                               atol=self.vtol**2,
-                                              ktol = self.ktol)
+                                              ktol = self.ktol,
+                                              debug=self.debug)
 
         self.ode.set_initial_value(self.y0.flatten(), self.time.t0)
 

@@ -68,6 +68,7 @@ class MOL:
         self.hi     = kwargs.pop('hi', 1e-3)
         self.vtol   = kwargs.pop('vtol', 1e-3)
         self.ktol   = kwargs.pop('ktol', 1e-1)
+        self.miter  = kwargs.pop('max_iter', 1000)
         self.tout   = np.arange(self.time.t0, self.time.tf, self.time.dt)
 
         # lambdas to create initial condition
@@ -256,6 +257,7 @@ class MOL:
                                               rtol=self.vtol, ifcn=ifcn,
                                               atol=self.vtol**2,
                                               ktol = self.ktol,
+                                              max_iter=self.miter,
                                               debug=self.debug)
 
         self.ode.set_initial_value(self.y0.flatten(), self.time.t0)

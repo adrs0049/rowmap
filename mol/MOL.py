@@ -176,12 +176,21 @@ class MOL:
         while self.ode.successful() and self.time.keepGoing(self.ode.t):
             try:
                 self.yt = self.ode.integrate(self.ode.t + self.time.dt)
+
+            # Handle value errors differently
             except ValueError as e:
                 # force a write of the current state
-                assert self.yt is not None, 'MOL error: solver returned None type!'
-                self.write()
-                yf = self.f.reshape(self.yt)
-                self._writeToLocalDataFrame(yf, self.ode.t)
+                if self.yt is not None:
+                    self.write()
+                    yf = self.f.reshape(self.yt)
+                    self._writeToLocalDataFrame(yf, self.ode.t)
+                else:
+                    print('MOL error: Solver returned None type!\n\tCan\'t save state!')
+
+                raise e
+
+            # catch anything else
+            except Exception as e:
                 raise e
 
             # reformat yt

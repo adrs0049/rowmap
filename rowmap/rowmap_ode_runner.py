@@ -203,11 +203,15 @@ class rowmap(IntegratorBase):
         self.idid   = idid
 
         # IMPROVE THIS!
-        if self.verbose:
+        if self.verbose or self.debug:
             print(self.statistics())
 
         if not self.success:
             print('ROWMAP: Failure!')
+
+        if not self.success or self.debug:
+            print(self.rowmap_parameters())
+            print(self.statistics())
 
         return y1, t
 
@@ -217,6 +221,11 @@ class rowmap(IntegratorBase):
                 '\n\tMat-Vec products %d\n\ths %.4g\n\tidid %d.'\
                 % (self.iwork[4], self.iwork[5], self.iwork[6], self.iwork[7],
                   self.hs, self.idid)
+
+
+    def rowmap_parameters(self):
+        return '\tRowmap parameters: MaxIter %d\n\tMethod %d\n\tmx %d\n\tlun %d.'\
+                % (self.iwork[0], self.iwork[1], self.iwork[2], self.iwork[3])
 
 
 if rowmap.runner:

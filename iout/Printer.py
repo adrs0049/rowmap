@@ -9,6 +9,6 @@ class Printer(object):
     Print things to stdout by updating line dynamically
     """
     def __init__(self, data):
-        sys.stdout.write("\r\x1b[K" + data.__str__())
+        sys.stdout.write("\x1b[2K\r" + data.__str__())
         sys.stdout.flush()
 

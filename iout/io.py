@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from lxml import etree
+from iout.config import get_config
+import os
 #import h5py
 #import numpy as np
+
 
 def writeDataFrame(filename, dataframe):
     # writing a dataframe to hdf5
@@ -27,4 +30,15 @@ def parseXML(xmlFile, name='Simulator'):
     parser = etree.XMLParser(remove_comments=True)
     tree   = etree.parse(xmlFile, parser)
     return getXMLNode(tree, name)
+
+
+def setup_project(projectName):
+    config = get_config(projectName)
+    create_dir(config['DEFAULT']['outdir'])
+
+
+def create_dir(dirname):
+    dirname=os.path.expanduser(dirname)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
 

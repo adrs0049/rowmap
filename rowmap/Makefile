@@ -16,6 +16,7 @@ INCLUDES=
 LIBS=-lblas
 #LIBS=-lmkl_rt
 
+python_exec=python2
 
 CWD := $(shell pwd)
 
@@ -27,7 +28,7 @@ all: $(MODULE)
 	touch .refresh
 
 $(MODULE): $(SOURCES)
-	python2 -m numpy.f2py $(INCLUDES) $(LIBS) -c $(MODULE).pyf -m $(MODULE) rowmap.f90
+	$(python_exec) -m numpy.f2py $(INCLUDES) $(LIBS) -c $(MODULE).pyf -m $(MODULE) rowmap.f90
 	#f2py $(INCLUDES) $(LIBS) -c $(MODULE).pyf -m $(MODULE) rowmap.f90
 
 .PHONY: setup clean force all

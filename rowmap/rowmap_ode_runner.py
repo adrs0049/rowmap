@@ -1,14 +1,42 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # Author: Andreas Buttenschoen
-from __future__ import print_function
+from __future__ import print_function, division
 
 from scipy.integrate._ode import IntegratorBase
 import numpy as np
-import rowmap._rowmap as _rowmap
+
+try:
+    import rowmap._rowmap as _rowmap
+except ImportError:
+    # first time let's try to build the module
+    import subprocess, sys, os
+    dir_cwd = os.getcwd()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(dir_path)
+
+    python_exec = sys.executable
+    make_process = subprocess.Popen('make all python_exec=%s' % python_exec,
+                                    stdout=subprocess.PIPE,
+                                    shell=True, stderr=subprocess.STDOUT)
+
+    if make_process.wait() != 0:
+        err_str = make_process.communicate()[0]
+        raise NameError('Build of rowmap module failed!\n{}'.format(err_str))
+
+    # switch back to old dir
+    os.chdir(dir_cwd)
+
+    # try import again
+    try:
+        import rowmap._rowmap as _rowmap
+    except:
+        raise
+
 
 import re
 import warnings
+
 
 """ SciPy integrator wrapper for RowMap implemented in rowmap.f90 """
 class rowmap(IntegratorBase):

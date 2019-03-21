@@ -200,7 +200,6 @@ class rowmap(IntegratorBase):
 
         args    = ((f, t0, y0, t1) + tuple(self.call_args))
 
-        self.debug=True
         if self.debug:
             print('Args:', len(args))
             print('f:', type(f))

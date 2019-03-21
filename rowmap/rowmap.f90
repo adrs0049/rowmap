@@ -277,19 +277,16 @@
     !f2py intent(in,out)
     double precision,     intent(inout)   :: t, u(n), hs
 
-    !f2py external, intent(callback) :: fdt
+    !f2py intent(callback) :: f
     external f
 
-    !f2py intent (callback) fdt
-    !f2py external, optional,intent(callback) :: fdt
+    !f2py intent(callback) :: fdt
     external fdt
 
-    !f2py intent (callback) solout
-    !f2py external solout
+    !f2py intent (callback)  :: solout
     external solout
 
-    !f2py intent (callback) jacv
-    !f2py external jacv
+    !f2py intent (callback) :: jacv
     external jacv
 
 ! Globals.

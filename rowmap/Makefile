@@ -34,4 +34,4 @@ $(MODULE): $(SOURCES)
 .PHONY: setup clean force all
 
 clean:
-	rm $(MODULE).so
+	rm -f *.so

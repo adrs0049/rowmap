@@ -1,9 +1,21 @@
 from __future__ import print_function
 import matplotlib.pyplot as plt
-import _rowmap as rowmap
 import numpy as np
 import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D
+
+try:
+    import _rowmap as rowmap
+except ImportError:
+    from build_rowmap import build_rowmap_module
+    build_rowmap_module()
+
+    # try import again
+    try:
+        import _rowmap as rowmap
+    except:
+        raise
+
 
 def f(t, u):
     x1 = 0.
@@ -31,10 +43,6 @@ def p(t, u):
             ut[i] = (u[i+1]-2.*u[i]+u[i-1])/dx2
 
     return ut
-
-
-def solout(n, told, tnew, uold, unew, fold, fnew, ucon, intr, rpar, ipar):
-    pass
 
 
 def exit_code(nexit):
@@ -141,11 +149,22 @@ if __name__ == '__main__':
     df = pd.DataFrame()
     df_anal = pd.DataFrame()
 
+    def callback(*args, **kwargs):
+        print('CALLBACK!')
+
+
+    def solout(told, tnew, uold, unew, fold, fnew, ucon, intr, rpar, ipar):
+        print('SOLOUT CALLBACK!')
+
+
     t = t0
     while True:
         nt = t + dt
         t, u, hs, iwork, idid = rowmap.rowmap(p, t, u0, t + dt, dt, rtol, atol,
-                                              work, iwork, rpar, ipar, ifcn=1)
+                                              work, iwork, rpar, ipar, ifcn=1,
+                                              iout=1,
+                                              jacv=callback, fdt=callback,
+                                              solout=solout)
 
         df[t] = u.copy()
         df_anal[t] = analytic(nt, x)

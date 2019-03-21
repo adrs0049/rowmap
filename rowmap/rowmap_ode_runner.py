@@ -9,23 +9,8 @@ import numpy as np
 try:
     import rowmap._rowmap as _rowmap
 except ImportError:
-    # first time let's try to build the module
-    import subprocess, sys, os
-    dir_cwd = os.getcwd()
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(dir_path)
-
-    python_exec = sys.executable
-    make_process = subprocess.Popen('make all python_exec=%s' % python_exec,
-                                    stdout=subprocess.PIPE,
-                                    shell=True, stderr=subprocess.STDOUT)
-
-    if make_process.wait() != 0:
-        err_str = make_process.communicate()[0]
-        raise NameError('Build of rowmap module failed!\n{}'.format(err_str))
-
-    # switch back to old dir
-    os.chdir(dir_cwd)
+    from build_rowmap import build_rowmap_module
+    build_rowmap_module()
 
     # try import again
     try:
@@ -56,6 +41,7 @@ class rowmap(IntegratorBase):
 
     """ Dummy callback functions """
     def dummy_callback(self, *args, **kwargs):
+        print('CALLBACK!')
         pass
 
 
@@ -214,8 +200,10 @@ class rowmap(IntegratorBase):
 
         args    = ((f, t0, y0, t1) + tuple(self.call_args))
 
+        self.debug=True
         if self.debug:
-            print('Args:', args)
+            print('Args:', len(args))
+            print('f:', type(f))
             print('kwargs:', self.call_kwargs)
 
         t, y1, hs, iwork, idid = self.runner(*args, **self.call_kwargs)

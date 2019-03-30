@@ -9,7 +9,7 @@ import numpy as np
 try:
     import rowmap._rowmap as _rowmap
 except ImportError:
-    from build_rowmap import build_rowmap_module
+    from rowmap.build_rowmap import build_rowmap_module
     build_rowmap_module()
 
     # try import again

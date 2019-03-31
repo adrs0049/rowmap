@@ -35,6 +35,8 @@ class rowmap(IntegratorBase):
                 -4 : "Internal Krylov matrix is repeatedly singular."
                }
 
+    ifcn_message = { 0 : 'autonomous', 1 : 'non-autonomous' }
+
     supports_run_relax = 0
     supports_step = 0
     active_global_handle = 0
@@ -97,6 +99,7 @@ class rowmap(IntegratorBase):
 
         # sets whether rhs is autonomous or non-autonomous
         self.ifcn           = kwargs.pop('ifcn', 0)
+        print('%s is %s.' % ('rowmap', self.ifcn_message[self.ifcn]))
 
         # external functions
         self.solout         = kwargs.pop('solout', None)

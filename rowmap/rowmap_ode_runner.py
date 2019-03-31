@@ -242,7 +242,7 @@ class rowmap(IntegratorBase):
 
 
     def rowmap_parameters(self):
-        return '\tRowmap parameters: MaxIter %d\n\tMethod %d\n\tmx %d\n\tlun %d.'\
+        return '\tRowmap parameters:\n\t\tMaxIter %d\n\t\tMethod %d\n\t\tmx %d\n\t\tlun %d.'\
                 % (self.iwork[0], self.iwork[1], self.iwork[2], self.iwork[3])
 
 

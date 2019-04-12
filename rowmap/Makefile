@@ -10,11 +10,18 @@ OUT_DIR = build
 MODULE=_rowmap
 
 SOURCES=$(MODULE).pyf rowmap.f90
-INCLUDES=
-#LIBS=-L/opt/intel/compilers_and_libraries_2016.2.181/linux/mkl/lib/intel64 -lmkl
-#LIBS=-llapack -lblas
+
+ifndef MKLROOT
 LIBS=-lblas
-#LIBS=-lmkl_rt
+COMPILER=--fcompiler=gnu95
+else
+INCLUDES=-I${MKLROOT}/include
+LIBS=-L${MKLROOT}/lib/intel64
+LIBS+=-lmkl_rt
+#COMPILER=--fcompiler=intelem
+COMPILER=--fcompiler=gnu95
+COPTS=--opt="-fopenmp -O3"
+endif
 
 python_exec=python2
 
@@ -22,13 +29,18 @@ CWD := $(shell pwd)
 
 .DELETE_ON_ERROR:
 
-all: $(MODULE)
+all: check-env $(MODULE)
 
 .refresh:
 	touch .refresh
 
+check-env:
+ifndef MKLROOT
+	@echo "Intel-mkl not found. Compiling against system BLAS."
+endif
+
 $(MODULE): $(SOURCES)
-	$(python_exec) -m numpy.f2py $(INCLUDES) $(LIBS) -c $(MODULE).pyf -m $(MODULE) rowmap.f90
+	$(python_exec) -m numpy.f2py $(COPTS) $(COMPILER) $(INCLUDES) $(LIBS) -c $(MODULE).pyf -m $(MODULE) rowmap.f90
 	#f2py $(INCLUDES) $(LIBS) -c $(MODULE).pyf -m $(MODULE) rowmap.f90
 
 .PHONY: setup clean force all

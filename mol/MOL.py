@@ -105,6 +105,10 @@ class MOL:
         # current solution
         self.yt = None
 
+        # output counter
+        self.output_counter = 0
+        self.output_every   = kwargs.pop('output_every', 20)
+
         # setup
         self._setup()
 
@@ -135,9 +139,13 @@ class MOL:
             y0 = np.reshape(y0, (1, y0.size))
 
         for i in range(self.noEqs):
-            self.dfs[i] = pd.DataFrame()
+            y = y0[i, :].flatten()
+            self.dfs[i] = pd.DataFrame(columns=range(y.size))
             self.dfs[i].name = 'MOL_dataframe' + str(i)
-            self.dfs[i][float(self.time.t0)] = y0[i, :].flatten()
+            self.dfs[i].loc[float(self.time.t0)] = y0[i, :].flatten()
+
+        # write to HDF5-file
+        self.write(append=False)
 
 
     """ update the plotter """
@@ -152,19 +160,32 @@ class MOL:
         return 'MOL(%s).' % (self.time)
 
 
-    def write(self):
+    """ Get the result HDF5 file """
+    @property
+    def outfile(self):
+        return os.path.join(self.outdir, self.name + '.h5')
+
+
+    """ Write local dataframe to a HDF5 file """
+    def write(self, append=True):
         if not self.save:
             return
 
         # TODO make this general!
-        writeDataFrame(os.path.join(self.outdir, self.name + '.h5'), self.dfs[0])
+        for df in self.dfs.values():
+            writeDataFrame(self.outfile, df, append=append)
+
+        # now drop all data from dataframe
+        for df in self.dfs.values():
+            df.drop(df.index, inplace=True)
 
 
     """ Update the local dataframe """
     def _writeToLocalDataFrame(self, y, t):
+        # write all data to the local dataframe
         for i in range(self.noEqs):
             yy = y[i, :].flatten()
-            self.dfs[i][t] = yy
+            self.dfs[i].loc[t] = yy
 
 
     """ Integrate using MOL """
@@ -184,6 +205,9 @@ class MOL:
                     self.write()
                     yf = self.f.reshape(self.yt)
                     self._writeToLocalDataFrame(yf, self.ode.t)
+
+                    # Write to HDF5-file
+                    self.write()
                 else:
                     print('MOL error: Solver returned None type!\n\tCan\'t save state!')
 
@@ -197,6 +221,15 @@ class MOL:
             yf = self.f.reshape(self.yt)
 
             self._writeToLocalDataFrame(yf, self.ode.t)
+
+            # Check if we should write to the disk
+            self.output_counter += 1
+
+            if (self.output_counter % self.output_every) == 0:
+                self.output_counter = 0
+
+                # Write to HDF5-file
+                self.write()
 
             # tell the runner something about the status
             #if self.ode.t > iteration * tenth_of_run_time:
@@ -270,4 +303,10 @@ class MOL:
                                               debug=self.debug)
 
         self.ode.set_initial_value(self.y0.flatten(), self.time.t0)
+
+
+
+if __name__ == '__main__':
+    rowmap = rowmap.rowmap_ode_runner
+    print(rowmap.__version__)
 

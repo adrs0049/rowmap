@@ -8,9 +8,10 @@ import os
 #import numpy as np
 
 
-def writeDataFrame(filename, dataframe):
+def writeDataFrame(filename, dataframe, *args, **kwargs):
     # writing a dataframe to hdf5
-    dataframe.to_hdf(filename, dataframe.name, mode='a', table=True)
+    dataframe.to_hdf(filename, dataframe.name, mode='a', table=True,
+                     format='table', *args, **kwargs)
 
 
 def print_attrs(name, obj):

@@ -20,8 +20,8 @@ export CFLAGS=-O3 -fPIC
 export FLAGS=-O3 -fPIC
 INCLUDES=-I${MKLROOT}/include
 LIBS=-L${MKLROOT}/lib/intel64
-LIBS+=-lmkl_rt
-COMPILER=--fcompiler=intelem --opt="-O3"
+LIBS+=-lmkl_rt -lmkl_intel_thread
+COMPILER=--fcompiler=intelem --opt="-O3 -fopenmp"
 endif
 
 python_exec=python2

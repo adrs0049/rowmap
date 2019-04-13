@@ -15,12 +15,13 @@ ifndef MKLROOT
 LIBS=-lblas
 COMPILER=--fcompiler=gnu95
 else
+export CC=icc
+export CFLAGS=-O3 -fPIC
+export FLAGS=-O3 -fPIC
 INCLUDES=-I${MKLROOT}/include
 LIBS=-L${MKLROOT}/lib/intel64
 LIBS+=-lmkl_rt
-#COMPILER=--fcompiler=intelem
-COMPILER=--fcompiler=gnu95
-COPTS=--opt="-fopenmp -O3"
+COMPILER=--fcompiler=intelem --opt="-O3"
 endif
 
 python_exec=python2

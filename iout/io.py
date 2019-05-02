@@ -1,10 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+#
+# Author: Andreas Buttenschoen
+#
+from __future__ import absolute_import, print_function, division
 
 from lxml import etree
 from iout.config import get_config
 import os
-#import h5py
+import h5py as h5
 #import numpy as np
 
 
@@ -42,4 +46,20 @@ def create_dir(dirname):
     dirname=os.path.expanduser(dirname)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
+
+
+def openH5File(dataFile, verbose=False):
+    if verbose:
+        print('Trying to open %s' % dataFile)
+
+    assert os.path.isfile(dataFile), 'Datafile %s not found.' % dataFile
+    fn = h5.File(dataFile, 'r')
+    outputPath = os.path.dirname(os.path.abspath(dataFile))
+
+    if verbose:
+        fn.visititems(print_attrs)
+        print('Writing results to %s.' % outputPath)
+
+    return fn, outputPath
+
 

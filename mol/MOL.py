@@ -160,9 +160,10 @@ class MOL:
 
         for i in range(self.noEqs):
             y = y0[i, :].flatten()
-            self.dfs[i] = pd.DataFrame(columns=range(y.size))
+            # creating it with columns is super slow
+            self.dfs[i] = pd.DataFrame(index=range(y.size)).transpose()
             self.dfs[i].name = 'MOL_dataframe' + str(i)
-            self.dfs[i].loc[float(self.time.t0)] = y0[i, :].flatten()
+            self.dfs[i].loc[float(self.time.t0)] = y
 
         # write to HDF5-file
         self.write(append=False)

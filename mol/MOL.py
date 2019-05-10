@@ -74,6 +74,9 @@ class MOL:
         # lambdas to create initial condition
         self.y0     = y0
 
+        # look up domain and dimensions
+        self.dim    = self._get_dims(*args, **kwargs)
+
         # no-equations
         self.noEqs = self._get_no_eqns()
 
@@ -113,13 +116,32 @@ class MOL:
         self._setup()
 
 
+    """ Determine the problems dimension """
+    def _get_dims(self, *args, **kwargs):
+        domain = kwargs.get('domain', None)
+        if domain is None:
+            # TODO proper warnings!
+            print('WARNING: couldn\'t find a domain!')
+            return 1
+
+        return domain.dimensions
+
+
     """ Determine the number of equations """
     def _get_no_eqns(self):
         shape = self.y0.shape
-        if len(shape) > 1:
-            return shape[0]
+        print('shape:', shape)
+        print('dim:', self.dim)
+
+        if self.dim > 2:
+            assert False, 'Dimensions other than 1 and 2 are not support!'
         else:
-            return 1
+            if len(shape) > self.dim:
+                return shape[0]
+            else:
+                # otherwise we must have 1 PDE only!
+                return 1
+
 
     """ setup dataframe output """
     def _create_outdir(self):

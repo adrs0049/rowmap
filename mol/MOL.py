@@ -130,8 +130,6 @@ class MOL:
     """ Determine the number of equations """
     def _get_no_eqns(self):
         shape = self.y0.shape
-        print('shape:', shape)
-        print('dim:', self.dim)
 
         if self.dim > 2:
             assert False, 'Dimensions other than 1 and 2 are not support!'

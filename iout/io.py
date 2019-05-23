@@ -32,6 +32,7 @@ def getXMLNode(tree, name):
 
 
 def parseXML(xmlFile, name='Simulator'):
+    assert os.path.isfile(xmlFile), '%s not found!' % xmlFile
     parser = etree.XMLParser(remove_comments=True)
     tree   = etree.parse(xmlFile, parser)
     return getXMLNode(tree, name)

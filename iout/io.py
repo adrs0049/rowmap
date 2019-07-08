@@ -15,7 +15,17 @@ import pandas as pd
 def get_groups(datafile):
     assert os.path.exists(datafile), 'File %s does not exist!' % datafile
     f = h5.File(datafile, 'r')
-    return list(f.keys())
+    groups = list(f.keys())
+    close_h5(f)
+    return groups
+
+
+def close_h5(fhandler):
+    if isinstance(fhandler, h5.File):
+        try:
+            fhandler.close()
+        except:
+            pass # was already closed
 
 
 def load_datafile(datafile):

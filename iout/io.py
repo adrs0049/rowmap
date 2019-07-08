@@ -9,7 +9,28 @@ from lxml import etree
 from iout.config import get_config
 import os
 import h5py as h5
-#import numpy as np
+import pandas as pd
+
+
+def get_groups(datafile):
+    assert os.path.exists(datafile), 'File %s does not exist!' % datafile
+    f = h5.File(datafile, 'r')
+    return list(f.keys())
+
+
+def load_datafile(datafile):
+    assert os.path.exists(datafile), 'File %s does not exist!' % datafile
+    groups = get_groups(datafile)
+
+    # if more than a single group in hdf5 file we must split it up!
+    dfs = {}
+    if len(groups) > 1:
+        for group in groups:
+            dfs[group] = pd.read_hdf(datafile, key=group)
+    else:
+        dfs = pd.read_hdf(datafile)
+
+    return dfs
 
 
 def writeDataFrame(filename, dataframe, *args, **kwargs):

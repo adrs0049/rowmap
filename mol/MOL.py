@@ -194,7 +194,7 @@ class MOL:
             self.dfs[i].loc[float(self.time.t0)] = y
 
         # write to HDF5-file
-        self.write(append=False)
+        self.write_disk(append=False)
 
 
     """ Direct HDF5 output """

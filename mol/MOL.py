@@ -47,6 +47,7 @@ from scipy.integrate import ode
 import rowmap.rowmap_ode_runner
 
 from iout.io import writeDataFrame
+from iout.h5_io import MOLFile
 from iout.Printer import Printer
 
 from model.Time import Time
@@ -80,6 +81,9 @@ class MOL:
         # no-equations
         self.noEqs = self._get_no_eqns()
 
+        # number of spatial disc points
+        self.msize = self._get_spatial_pts()
+
         # live plotting
         self.livePlotting = kwargs.pop('livePlotting', False)
         self.plotter      = None
@@ -87,10 +91,12 @@ class MOL:
         # data output
         self.outdir         = kwargs.pop('outdir', 'results')
         self.save           = kwargs.pop('save', False)
+        self.save_new       = kwargs.pop('save_new', False)
+        assert (self.save and self.save_new) is False, 'Save and new_save cannot be used at the same time!'
         self.name           = kwargs.pop('name'  , 'MOL_unnamed')
 
         # if not h5 output save a dataframe
-        self._setup_df_output(y0)
+        self._setup_output(y0)
 
         # set default verbosity
         self.verbose        = kwargs.pop('verbose', False)
@@ -141,6 +147,16 @@ class MOL:
                 return 1
 
 
+    """ Determine number of spatial points """
+    def _get_spatial_pts(self):
+        shape = self.y0.shape
+
+        if self.dim > 2:
+            assert False, 'Dimensions other than 1 and 2 are not support!'
+        else:
+            return shape[1:]
+
+
     """ setup dataframe output """
     def _create_outdir(self):
         if os.path.exists(self.outdir) and not os.path.isdir(self.outdir):
@@ -149,7 +165,19 @@ class MOL:
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
 
+    """ setup output """
+    def _setup_output(self, y0):
+        if self.save:
+            self.write_disk = self.write_disk_df
+            self.write= self._writeToLocalDataFrame
+            self._setup_df_output(y0)
+        elif self.save_new:
+            self.write_disk = self.write_disk_h5
+            self.write = self.write_h5
+            self._setup_h5_output(y0)
 
+
+    """ Use a pandas dataframe for outputs """
     def _setup_df_output(self, y0):
         self._create_outdir()
 
@@ -167,6 +195,20 @@ class MOL:
 
         # write to HDF5-file
         self.write(append=False)
+
+
+    """ Direct HDF5 output """
+    def _setup_h5_output(self, y0):
+        self._create_outdir()
+
+        self.h5f = MOLFile(self.msize, self.noEqs, fname=self.outfile,
+                           name=self.name)
+
+        if self.noEqs == 1:
+            y0 = np.reshape(y0, (1, y0.size))
+
+        # save initial condition to hdf5 file
+        self.h5f.add(float(self.time.t0), y0)
 
 
     """ update the plotter """
@@ -188,7 +230,7 @@ class MOL:
 
 
     """ Write local dataframe to a HDF5 file """
-    def write(self, append=True):
+    def write_disk_df(self, append=True):
         if not self.save:
             return
 
@@ -199,6 +241,16 @@ class MOL:
         # now drop all data from dataframe
         for df in self.dfs.values():
             df.drop(df.index, inplace=True)
+
+
+    """ Write to h5 file """
+    def write_h5(self, y, t):
+        self.h5f.add(t, y)
+
+
+    """ TODO remove! """
+    def write_disk_h5(self, append=True):
+        pass
 
 
     """ Update the local dataframe """
@@ -223,12 +275,12 @@ class MOL:
             except ValueError as e:
                 # force a write of the current state
                 if self.yt is not None:
-                    self.write()
+                    self.write_disk()
                     yf = self.f.reshape(self.yt)
-                    self._writeToLocalDataFrame(yf, self.ode.t)
+                    self.write(yf, self.ode.t)
 
                     # Write to HDF5-file
-                    self.write()
+                    self.write_disk()
                 else:
                     print('MOL error: Solver returned None type!\n\tCan\'t save state!')
 
@@ -241,7 +293,7 @@ class MOL:
             # reformat yt
             yf = self.f.reshape(self.yt)
 
-            self._writeToLocalDataFrame(yf, self.ode.t)
+            self.write(yf, self.ode.t)
 
             # Check if we should write to the disk
             self.output_counter += 1
@@ -250,7 +302,7 @@ class MOL:
                 self.output_counter = 0
 
                 # Write to HDF5-file
-                self.write()
+                self.write_disk()
 
             # tell the runner something about the status
             #if self.ode.t > iteration * tenth_of_run_time:
@@ -267,7 +319,7 @@ class MOL:
             step_start = now()
 
         # write everything now
-        self.write()
+        self.write_disk()
 
         # print new line
         #print('\n')
@@ -324,7 +376,6 @@ class MOL:
                                               debug=self.debug)
 
         self.ode.set_initial_value(self.y0.flatten(), self.time.t0)
-
 
 
 if __name__ == '__main__':

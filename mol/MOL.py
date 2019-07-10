@@ -165,16 +165,17 @@ class MOL:
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
 
+
     """ setup output """
     def _setup_output(self, y0):
-        if self.save:
-            self.write_disk = self.write_disk_df
-            self.write= self._writeToLocalDataFrame
-            self._setup_df_output(y0)
-        elif self.save_new:
+        if self.save_new:
             self.write_disk = self.write_disk_h5
             self.write = self.write_h5
             self._setup_h5_output(y0)
+        else:
+            self.write_disk = self.write_disk_df
+            self.write= self._writeToLocalDataFrame
+            self._setup_df_output(y0)
 
 
     """ Use a pandas dataframe for outputs """

@@ -75,14 +75,14 @@ class MOL:
         # lambdas to create initial condition
         self.y0     = y0
 
+        # make sure y0 has the correct shape
+        self._reshape_y0()
+
         # look up domain and dimensions
         self.dim    = self._get_dims(*args, **kwargs)
 
         # no-equations
         self.noEqs = self._get_no_eqns()
-
-        # number of spatial disc points
-        self.msize = self._get_spatial_pts()
 
         # live plotting
         self.livePlotting = kwargs.pop('livePlotting', False)
@@ -95,9 +95,6 @@ class MOL:
         assert (self.save and self.save_new) is False, 'Save and new_save cannot be used at the same time!'
         self.name           = kwargs.pop('name'  , 'MOL_unnamed')
 
-        # if not h5 output save a dataframe
-        self._setup_output(y0)
-
         # set default verbosity
         self.verbose        = kwargs.pop('verbose', False)
         self.debug          = kwargs.pop('debug',   False)
@@ -107,6 +104,12 @@ class MOL:
 
         # The right hand side
         self.f      = f(noPDEs = self.noEqs, t0 = self.time.t0, *args, **kwargs)
+
+        # number of spatial disc points
+        self.msize = self._get_spatial_pts()
+
+        # if not h5 output save a dataframe
+        self._setup_output(y0)
 
         # machine eps
         self.eps    = 1.e4 * np.finfo(float).eps
@@ -120,6 +123,13 @@ class MOL:
 
         # setup
         self._setup()
+
+
+    """ reshape y0 if it's a 1D array """
+    def _reshape_y0(self):
+        shape = self.y0.shape
+        if len(shape) == 1:
+            self.y0 = self.y0.reshape((1, self.y0.size))
 
 
     """ Determine the problems dimension """

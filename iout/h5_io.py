@@ -64,19 +64,18 @@ class MOLFile:
                 continue
 
             gid = self.groups[grp.name]
-            print('Found group %s with id %d.' % (grp.name, gid))
-
             dset_shape = (0, ) + tuple(self.shape)
             dset_max   = (None, ) + tuple(self.shape)
             grp.create_dataset(self.field_name, dset_shape,
                                maxshape=dset_max, dtype='f', chunks=True)
+
+            print('Found group %s with id %d.\nCreating dataset with shape: %s.' % (grp.name, gid, dset_shape))
 
 
     def add(self, t, y):
         # write directly to the file
         self.__open_file()
         try:
-
             tdset = self.h5f['time']
             tdset.resize(len(tdset)+1, axis=0)
             tdset[len(tdset)-1] = t
@@ -96,7 +95,7 @@ class MOLFile:
                 dset[cidx, :] = y[gid, :]
 
         except Exception as e:
-            print('ERROR:', e)
+            print('MOLFile Error:', e)
             self.__close_file()
         else:
             self.__close_file()

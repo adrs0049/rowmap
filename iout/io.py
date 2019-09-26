@@ -36,6 +36,7 @@ def load_datafile(datafile):
     dfs = {}
     if len(groups) > 1:
         for group in groups:
+            print('datafile:', datafile, ' group:', group)
             dfs[group] = pd.read_hdf(datafile, key=group)
     else:
         dfs = pd.read_hdf(datafile)

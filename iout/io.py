@@ -7,6 +7,7 @@ from __future__ import absolute_import, print_function, division
 
 from lxml import etree
 from iout.config import get_config
+from iout.h5_io import MOLFile
 import os
 import h5py as h5
 import pandas as pd
@@ -28,18 +29,65 @@ def close_h5(fhandler):
             pass # was already closed
 
 
-def load_datafile(datafile):
-    assert os.path.exists(datafile), 'File %s does not exist!' % datafile
+""" Function to load a hdf5 into pytables """
+def load_datafile_pytables(datafile):
     groups = get_groups(datafile)
 
     # if more than a single group in hdf5 file we must split it up!
     dfs = {}
     if len(groups) > 1:
         for group in groups:
-            print('datafile:', datafile, ' group:', group)
             dfs[group] = pd.read_hdf(datafile, key=group)
     else:
         dfs = pd.read_hdf(datafile)
+
+    return dfs
+
+
+""" Load custom hdf5 files """
+def load_datafile_mol(datafile):
+    mfn = MOLFile(fname=datafile, fmode='r')
+
+    # get keys
+    keys = set(mfn.keys())
+
+    # check that we found enough keys
+    assert len(keys) > 1, 'Only found %d keys, not enough! Need at least 2.' % len(keys)
+    assert 'time' in keys, 'Could not find a group containing simulation time!'
+
+    # load simulation times
+    times = mfn['time']
+
+    # if we only have one field we don't need to generate a dictionary!
+    fields = keys.symmetric_difference(['time'])
+
+    # the output dictionary
+    dfs = {}
+
+    if len(fields)>1:
+        for group in fields:
+            data       = mfn[group+'/data']
+            dfs[group] = pd.DataFrame(index=times, data=data)
+    else:
+        data = mfn[next(iter(fields))+'/data']
+        dfs = pd.DataFrame(index=times, data=data)
+
+    return dfs
+
+
+def load_datafile(datafile):
+    assert os.path.exists(datafile), 'File %s does not exist!' % datafile
+
+    # first try to use pytables
+    try:
+        dfs = load_datafile_pytables(datafile)
+    except Exception as e:
+        # try to load using molfile
+        try:
+            dfs = load_datafile_mol(datafile)
+        except Exception as e:
+            print('Loading %s failed both using MOL and pytables!' % datafile)
+            raise e
 
     return dfs
 

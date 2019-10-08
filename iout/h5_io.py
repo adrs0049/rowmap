@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 # Author: Andreas Buttenschoen
 
+import os
 import h5py as h5
 
 
 class MOLFile:
-    def __init__(self, shape, eqns, fname=None, name='MOL_data'):
-        self.shape = shape
-        self.eqns  = eqns
+    def __init__(self, fname=None, overwrite=False, name='MOL_data', *args, **kwargs):
+        self.shape = kwargs.pop('shape', None)
+        self.eqns  = kwargs.pop('eqns', None)
 
         # filename to write to
         self.fname = fname
@@ -25,12 +26,30 @@ class MOLFile:
         # field name
         self.field_name = 'data'
 
+        # file-mode used for opening
+        self.fmode = kwargs.pop('fmode', 'w')
+
+        # check if file exists
+        self.exists = os.path.isfile(self.fname)
+
         # setup output
-        self._setup_h5_output()
+        if self.exists or self.fmode == 'r':
+            self.fmode = 'r'
+            self._setup_exists_h5_output()
+        else:
+            self.fmode = 'w'
+            self._setup_new_h5_output()
 
 
-    def _setup_h5_output(self):
-        self.__open_file(mode='w')
+    def _setup_exists_h5_output(self):
+        self.__open_file(mode=self.fmode)
+        groups = list(self.h5f.keys())
+
+        self.__close_file()
+
+
+    def _setup_new_h5_output(self):
+        self.__open_file(mode=self.fmode)
         for i in range(self.eqns):
             grp_name = self.name + '_%d' % i
             grp = self.h5f.create_group(grp_name)
@@ -107,4 +126,36 @@ class MOLFile:
 
     def __del__(self):
         self.__close_file()
+
+
+    def __getitem__(self, name):
+        self.__open_file('r')
+        data = None
+        try:
+            loaded = self.h5f[name]
+            assert isinstance(loaded, h5.Dataset), 'Must load a dataset!'
+            data = self.h5f[name][()]
+        except Exception as e:
+            self.__close_file()
+            raise e
+        else:
+            self.__close_file()
+
+        return data
+
+
+    def keys(self):
+        self.__open_file('r')
+        groups = None
+        try:
+            groups = list(self.h5f.keys())
+        except Exception as e:
+            self.__close_file()
+            raise e
+        else:
+            self.__close_file()
+
+        return groups
+
+
 

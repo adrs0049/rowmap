@@ -212,7 +212,7 @@ class MOL:
     def _setup_h5_output(self, y0):
         self._create_outdir()
 
-        self.h5f = MOLFile(self.msize, self.noEqs, fname=self.outfile,
+        self.h5f = MOLFile(shape=self.msize, eqns=self.noEqs, fname=self.outfile,
                            name=self.name)
 
         if self.noEqs == 1:

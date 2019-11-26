@@ -43,8 +43,7 @@ class MOLFile:
 
     def _setup_exists_h5_output(self):
         self.__open_file(mode=self.fmode)
-        groups = list(self.h5f.keys())
-
+        #groups = list(self.h5f.keys())
         self.__close_file()
 
 

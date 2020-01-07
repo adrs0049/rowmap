@@ -125,6 +125,12 @@ class MOL:
         self._setup()
 
 
+    """ Easy access to current solution """
+    @property
+    def y(self):
+        return self.f.reshape(self.yt)
+
+
     """ reshape y0 if it's a 1D array """
     def _reshape_y0(self):
         shape = self.y0.shape

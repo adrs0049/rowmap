@@ -8,6 +8,9 @@ from __future__ import absolute_import, print_function, division
 from lxml import etree
 from iout.config import get_config
 from iout.h5_io import MOLFile
+
+from collections import OrderedDict
+
 import os
 import h5py as h5
 import pandas as pd
@@ -46,6 +49,7 @@ def load_datafile_pytables(datafile):
 
 """ Load custom hdf5 files """
 def load_datafile_mol(datafile):
+    print('Loading MOL file: %s.' % datafile)
     mfn = MOLFile(fname=datafile, fmode='r')
 
     # get keys
@@ -62,7 +66,7 @@ def load_datafile_mol(datafile):
     fields = keys.symmetric_difference(['time'])
 
     # the output dictionary
-    dfs = {}
+    dfs = OrderedDict()
 
     if len(fields)>1:
         for group in fields:
@@ -142,5 +146,3 @@ def openH5File(dataFile, verbose=False):
         print('Writing results to %s.' % outputPath)
 
     return fn, outputPath
-
-

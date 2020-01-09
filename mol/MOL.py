@@ -42,7 +42,6 @@ from iout.format_time import format_delta, now
 
 import os, time
 import numpy as np
-import pandas as pd
 from scipy.integrate import ode
 import rowmap.rowmap_ode_runner
 
@@ -175,6 +174,7 @@ class MOL:
 
     """ setup dataframe output """
     def _create_outdir(self):
+        print('MOL output written to %s.' % self.outdir)
         if os.path.exists(self.outdir) and not os.path.isdir(self.outdir):
             assert False, '%s exists but is not a directory!' % self.outdir
 
@@ -196,6 +196,8 @@ class MOL:
 
     """ Use a pandas dataframe for outputs """
     def _setup_df_output(self, y0):
+        # only import pandas here!
+        import pandas as pd
         self._create_outdir()
 
         # data storage
@@ -398,4 +400,3 @@ class MOL:
 if __name__ == '__main__':
     rowmap = rowmap.rowmap_ode_runner
     print(rowmap.__version__)
-
